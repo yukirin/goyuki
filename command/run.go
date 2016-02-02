@@ -1,6 +1,7 @@
 package command
 
 import (
+	"fmt"
 	"strings"
 )
 
@@ -11,7 +12,11 @@ type RunCommand struct {
 
 // Run run the test
 func (c *RunCommand) Run(args []string) int {
-	// Write your code here
+	if len(args) < 2 {
+		msg := fmt.Sprintf("Invalid arguments: %s", strings.Join(args, " "))
+		c.Ui.Error(msg)
+		return 1
+	}
 
 	return 0
 }
