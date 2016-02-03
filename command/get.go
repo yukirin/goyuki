@@ -4,12 +4,12 @@ import (
 	"archive/zip"
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
 	"os"
-	"os/user"
 	"path/filepath"
 	"regexp"
 	"strconv"
@@ -96,17 +96,20 @@ Usage:
 
 func readCookie(config string) (string, error) {
 	cookie := ""
-	usr, err := user.Current()
-	if err != nil {
-		return cookie, err
+
+	for _, v := range os.Environ() {
+		if !strings.HasPrefix(v, "GOYUKI") {
+			continue
+		}
+		cookie = strings.Split(v, "=")[1]
+		break
 	}
 
-	b, err := ioutil.ReadFile(strings.Replace(config, "~", usr.HomeDir, 1))
-	if err != nil {
-		return cookie, err
+	if cookie == "" {
+		return "", errors.New("$GOYUKI not set")
 	}
 
-	return strings.Trim(string(b), "\n"), nil
+	return cookie, nil
 }
 
 func download(num int, cookie string) ([]byte, *Info, error) {
