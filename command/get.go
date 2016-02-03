@@ -217,7 +217,9 @@ func parse(r io.Reader) (*Info, error) {
 	i.Level = p.First().Find("i.fa-star").Size()
 	infoData := p.First().Text()
 
-	match := regexp.MustCompile(`[\d]+`).FindAllStringSubmatch(infoData, -1)
+	reg, _ := regexp.Compile(`[\d]+`)
+	match := reg.FindAllStringSubmatch(infoData, -1)
+
 	tm := [2]int{}
 	for i, v := range match[1:3] {
 		n, err := strconv.Atoi(v[0])
