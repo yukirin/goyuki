@@ -121,7 +121,7 @@ func download(num int, cookie string) ([]byte, *Info, error) {
 		MaxRedirects: 1,
 	}.Do()
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, fmt.Errorf("failed problem request : %v", err)
 	}
 	defer res.Body.Close()
 
@@ -142,7 +142,7 @@ func download(num int, cookie string) ([]byte, *Info, error) {
 		Uri: testCaseURI,
 	}.WithCookie(session).Do()
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, fmt.Errorf("failed testcase request : %v", err)
 	}
 	defer res.Body.Close()
 
@@ -213,7 +213,7 @@ func parse(r io.Reader) (*Info, error) {
 	i := &Info{}
 	doc, err := goquery.NewDocumentFromReader(r)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("problem parse error : %v", err)
 	}
 
 	content := doc.Find("div#content")
