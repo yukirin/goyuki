@@ -146,6 +146,10 @@ func download(num int, cookie string) ([]byte, *Info, error) {
 	}
 	defer res.Body.Close()
 
+	if res.StatusCode == 403 {
+		return nil, nil, fmt.Errorf("please log in to yukicoder")
+	}
+
 	buf := bytes.NewBuffer(make([]byte, 0, 1000000))
 	if _, err := io.Copy(buf, res.Body); err != nil {
 		return nil, nil, err
