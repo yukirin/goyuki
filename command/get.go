@@ -35,6 +35,10 @@ type Info struct {
 
 const config = "~/.goyuki"
 const infoFile = "info.json"
+const (
+	dPerm = 0755
+	fPerm = 0644
+)
 
 // Run get test case
 func (c *GetCommand) Run(args []string) int {
@@ -148,7 +152,7 @@ func download(num int, cookie string) ([]byte, *Info, error) {
 
 func save(buf []byte, i *Info, num int) error {
 	baseDir := fmt.Sprint(num)
-	if err := os.Mkdir(baseDir, os.ModePerm); err != nil {
+	if err := os.Mkdir(baseDir, dPerm); err != nil {
 		return err
 	}
 
@@ -158,7 +162,7 @@ func save(buf []byte, i *Info, num int) error {
 	}
 
 	infoName := strings.Join([]string{baseDir, infoFile}, "/")
-	if err := ioutil.WriteFile(infoName, b, os.ModePerm); err != nil {
+	if err := ioutil.WriteFile(infoName, b, fPerm); err != nil {
 		return err
 	}
 
@@ -179,7 +183,7 @@ func save(buf []byte, i *Info, num int) error {
 			path := baseDir + "/" + f.Name
 			d := filepath.Dir(path)
 			if _, err = os.Stat(d); err != nil {
-				if err := os.Mkdir(d, os.ModePerm); err != nil {
+				if err := os.Mkdir(d, dPerm); err != nil {
 					return err
 				}
 			}
