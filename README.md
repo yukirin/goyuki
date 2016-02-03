@@ -17,11 +17,15 @@ $ goyuki get problem_no
 
 ####問題No.
 [No.1 道のショートカット](http://yukicoder.me/problems/17)のテストを実行したい場合は
-`$ goyuki run 1 main.go`
+```bash
+$ goyuki run 1 main.go
+```
 のような形にする
 
 テストケースを取得する場合は
-`$ goyuki get 1`
+```bash
+$ goyuki get 1
+```
 のような形にする
 
 ## Install
