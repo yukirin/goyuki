@@ -1,23 +1,32 @@
 # goyuki
-To test yukicoder problems in local
+yukicoderのテストケースをダウンロードしてローカルでテストを実行するツール
 
 
 ## Usage
-### Run test case
-Run the test, Download if there is no test case
+### テストを実行する
+テストを実行する、テストケースがない場合はダウンロードしてから実行する
 ```bash
 $ goyuki run problem_no exec_file
 ```
 
-### Get test case
-Get test case
+### テストケースを取得する
+テストケースを取得する
 ```bash
 $ goyuki get problem_no
 ```
 
+####問題No.
+[No.1 道のショートカット](http://yukicoder.me/problems/17)のテストを実行したい場合は
+`$ goyuki run 1 main.go`
+のような形にする
+
+テストケースを取得する場合は
+`$ goyuki get 1`
+のような形にする
+
 ## Install
 
-To install, use `go get`:
+`go get`
 
 ```bash
 $ go get -d github.com/yukirin/goyuki

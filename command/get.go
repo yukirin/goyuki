@@ -81,12 +81,15 @@ func (c *GetCommand) Run(args []string) int {
 
 // Synopsis is a one-line, short synopsis of the command.
 func (c *GetCommand) Synopsis() string {
-	return "Get test case"
+	return "テストケースを取得する"
 }
 
 // Help is a long-form help text
 func (c *GetCommand) Help() string {
 	helpText := `
+problem_noで指定された番号の問題のテストケースを取得し、
+カレントディレクトリに展開する
+
 Usage:
 	goyuki get problem_no
 

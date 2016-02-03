@@ -23,12 +23,15 @@ func (c *RunCommand) Run(args []string) int {
 
 // Synopsis is a one-line, short synopsis of the command.
 func (c *RunCommand) Synopsis() string {
-	return "Run the test"
+	return "テストを実行する"
 }
 
 // Help is a long-form help text
 func (c *RunCommand) Help() string {
 	helpText := `
+problem_noで指定された番号の問題のテストを実行する
+もしテストケースを取得していなければ、取得する
+
 Usage:
 	goyuki run problem_no exec_file
 
