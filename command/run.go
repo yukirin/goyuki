@@ -30,7 +30,6 @@ func (c *RunCommand) Synopsis() string {
 func (c *RunCommand) Help() string {
 	helpText := `
 problem_noで指定された番号の問題のテストを実行する
-もしテストケースを取得していなければ、取得する
 
 Usage:
 	goyuki run problem_no exec_file
