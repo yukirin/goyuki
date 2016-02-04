@@ -19,24 +19,6 @@ type RunCommand struct {
 	Meta
 }
 
-// Validater is the interface that wraps the Validate method
-type Validater interface {
-	Validate(actual, expected []byte) bool
-}
-
-// DiffValidater is verifies the exact match
-type DiffValidater struct {
-}
-
-// Validate is verifies the exact match
-func (d *DiffValidater) Validate(actual, expected []byte) bool {
-	return bytes.Equal(actual, expected)
-}
-
-var validaters = map[string]Validater{
-	"diff": &DiffValidater{},
-}
-
 // Run run the test
 func (c *RunCommand) Run(args []string) int {
 	var (
@@ -80,9 +62,9 @@ func (c *RunCommand) Run(args []string) int {
 	if langFlag != "" {
 		ext = langFlag
 	}
-	v := validaters["diff"]
+	v := Validaters["diff"]
 	if validaterFlag != "" {
-		v = validaters[validaterFlag]
+		v = Validaters[validaterFlag]
 	}
 
 	b, err := ioutil.ReadFile(args[1])
