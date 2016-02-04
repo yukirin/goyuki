@@ -60,7 +60,7 @@ func (c *RunCommand) Run(args []string) int {
 	_, source := path.Split(args[1])
 
 	if langFlag == "" {
-		langFlag = path.Ext(args[1])[1:]
+		langFlag = strings.Replace(path.Ext(args[1]), ".", "", -1)
 	}
 	lang, ok := Lang[langFlag]
 	if !ok {
