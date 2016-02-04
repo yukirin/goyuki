@@ -34,6 +34,15 @@ type Info struct {
 
 // Run get test case
 func (c *GetCommand) Run(args []string) int {
+	flags := c.Meta.NewFlagSet("get", c.Help())
+
+	if err := flags.Parse(args); err != nil {
+		msg := fmt.Sprintf("Invalid option: %s", strings.Join(args, " "))
+		c.UI.Error(msg)
+		return 1
+	}
+	args = flags.Args()
+
 	if len(args) < 1 {
 		msg := fmt.Sprintf("Invalid arguments: %s", strings.Join(args, " "))
 		c.UI.Error(msg)
@@ -84,6 +93,7 @@ problem_noで指定された番号の問題のテストケースを取得し、
 
 Usage:
 	goyuki get problem_no
+
 
 `
 	return strings.TrimSpace(helpText)

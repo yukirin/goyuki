@@ -74,7 +74,7 @@ var (
 func (m *Meta) NewFlagSet(name string, helpText string) *flag.FlagSet {
 	flags := flag.NewFlagSet(name, flag.ContinueOnError)
 
-	flags.Usage = func() { m.UI.Error(helpText) }
+	flags.Usage = func() { m.UI.Output(helpText) }
 
 	errR, errW := io.Pipe()
 	errScanner := bufio.NewScanner(errR)
