@@ -40,7 +40,7 @@ var Lang = map[string][]string{
 	"cpp":   {"g++ -O2 -lm -std=gnu++11 -o a.out {{.File}}", "./a.out"},
 	"go":    {"go build {{.File}}", "./{{.Exec}}"},
 	"c":     {"gcc -O2 -lm -o a.out {{.File}}", "./a.out"},
-	"rb":    {"ruby --dissable-gems -w -c {{.File}}", "ruby --disable-gems {{.File}}"},
+	"rb":    {"ruby --disable-gems -w -c {{.File}}", "ruby --disable-gems {{.File}}"},
 	"py2":   {"python2 -m py_compile {{.File}}", "python2 {{.Exec}}.pyc"},
 	"py":    {"python3 -mpy_compile {{.File}}", "python3 {{.File}}"},
 	"pypy2": {"pypy2 -m py_compile {{.File}}", "pypy2 {{.File}}"},
