@@ -185,7 +185,7 @@ func (c *RunCommand) Run(args []string) int {
 
 			result := judge(cmd, output, v, &info)
 			_, testFile := path.Split(inputFiles[i])
-			c.UI.Output(fmt.Sprintf("%s\t%s", testFile, result))
+			c.UI.Output(fmt.Sprintf("%s\t%s", result, testFile))
 			return nil
 		}()
 		if err != nil {
@@ -231,7 +231,7 @@ func compile(cmds string, lCmd *LangCmd, tmpDir string) error {
 	cmd.Dir = tmpDir
 	cmd.Stdin, cmd.Stdout, cmd.Stderr = os.Stdin, os.Stdout, os.Stderr
 	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("%s: %s", lCmd.File, CE)
+		return fmt.Errorf("%s: %s", CE, lCmd.File)
 	}
 	return nil
 }
