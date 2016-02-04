@@ -49,9 +49,9 @@ func (c *GetCommand) Run(args []string) int {
 		return ExitCodeFailed
 	}
 
-	cookie, err := readCookie()
-	if err != nil {
-		c.UI.Error(fmt.Sprint(err))
+	cookie := os.Getenv("GOYUKI")
+	if cookie == "" {
+		c.UI.Error("$GOYUKI not set")
 		return ExitCodeFailed
 	}
 
@@ -97,24 +97,6 @@ Usage:
 
 `
 	return strings.TrimSpace(helpText)
-}
-
-func readCookie() (string, error) {
-	cookie := ""
-
-	for _, v := range os.Environ() {
-		if !strings.HasPrefix(v, "GOYUKI") {
-			continue
-		}
-		cookie = strings.Split(v, "=")[1]
-		break
-	}
-
-	if cookie == "" {
-		return "", fmt.Errorf("$GOYUKI not set")
-	}
-
-	return cookie, nil
 }
 
 func download(num int, cookie string) ([]byte, *Info, error) {
