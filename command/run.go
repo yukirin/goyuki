@@ -58,13 +58,25 @@ func (c *RunCommand) Run(args []string) int {
 	defer os.RemoveAll(tmpDir)
 
 	_, source := path.Split(args[1])
-	ext := path.Ext(args[1])[1:]
-	if langFlag != "" {
-		ext = langFlag
+
+	if langFlag == "" {
+		langFlag = path.Ext(args[1])[1:]
 	}
-	v := Validaters["diff"]
-	if validaterFlag != "" {
-		v = Validaters[validaterFlag]
+	lang, ok := Lang[langFlag]
+	if !ok {
+		msg := fmt.Sprintf("Invalid language: %s", langFlag)
+		c.UI.Error(msg)
+		return 1
+	}
+
+	if validaterFlag == "" {
+		validaterFlag = "diff"
+	}
+	v, ok := Validaters[validaterFlag]
+	if !ok {
+		msg := fmt.Sprintf("Invalid Validater: %s", validaterFlag)
+		c.UI.Error(msg)
+		return 1
 	}
 
 	lCmd := LangCmd{
@@ -99,12 +111,12 @@ func (c *RunCommand) Run(args []string) int {
 	result := Result{
 		info:       &info,
 		date:       time.Now(),
-		lang:       Lang[ext][2],
+		lang:       lang[2],
 		codeLength: len(b),
 	}
 
 	sTime := time.Now()
-	err = compile(Lang[ext][0], &lCmd, tmpDir)
+	err = compile(lang[0], &lCmd, tmpDir)
 	result.compileTime = time.Now().Sub(sTime)
 
 	c.UI.Output(result.String())
@@ -113,7 +125,7 @@ func (c *RunCommand) Run(args []string) int {
 		return 1
 	}
 
-	if ext == "java" || ext == "scala" {
+	if langFlag == "java" || langFlag == "scala" {
 		class, err := classFile(tmpDir)
 		lCmd.Class = class
 
@@ -139,7 +151,7 @@ func (c *RunCommand) Run(args []string) int {
 
 	var execBuf bytes.Buffer
 
-	t := template.Must(template.New("exec").Parse(Lang[ext][1]))
+	t := template.Must(template.New("exec").Parse(lang[1]))
 	if err := t.Execute(&execBuf, lCmd); err != nil {
 		msg := fmt.Sprintf("executing template: %v", err)
 		c.UI.Error(msg)
