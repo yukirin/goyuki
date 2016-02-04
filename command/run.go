@@ -210,7 +210,7 @@ Usage:
 
 Options:
 	-language, -l		実行する言語を指定します (デフォルト 拡張子から判別)
-	-validater, -V       テストの一致方法を指定します (デフォルト diff validator)
+	-validater, -V       テストの一致方法を指定します (デフォルト diff validater)
 
 
 `
