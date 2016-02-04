@@ -19,9 +19,6 @@ type Meta struct {
 	UI cli.Ui
 }
 
-// Config is config file
-const Config = "~/.goyuki"
-
 // InfoFile is yukicoder problem infomation file
 const InfoFile = "info.json"
 

@@ -41,7 +41,7 @@ func (c *GetCommand) Run(args []string) int {
 		return 1
 	}
 
-	cookie, err := readCookie(Config)
+	cookie, err := readCookie()
 	if err != nil {
 		c.UI.Error(fmt.Sprint(err))
 		return 1
@@ -90,7 +90,7 @@ Usage:
 	return strings.TrimSpace(helpText)
 }
 
-func readCookie(config string) (string, error) {
+func readCookie() (string, error) {
 	cookie := ""
 
 	for _, v := range os.Environ() {
