@@ -39,45 +39,45 @@ func (c *GetCommand) Run(args []string) int {
 	if err := flags.Parse(args); err != nil {
 		msg := fmt.Sprintf("Invalid option: %s", strings.Join(args, " "))
 		c.UI.Error(msg)
-		return 1
+		return ExitCodeFailed
 	}
 	args = flags.Args()
 
 	if len(args) < 1 {
 		msg := fmt.Sprintf("Invalid arguments: %s", strings.Join(args, " "))
 		c.UI.Error(msg)
-		return 1
+		return ExitCodeFailed
 	}
 
 	cookie, err := readCookie()
 	if err != nil {
 		c.UI.Error(fmt.Sprint(err))
-		return 1
+		return ExitCodeFailed
 	}
 
 	num, err := strconv.Atoi(args[0])
 	if err != nil {
 		c.UI.Error(fmt.Sprint(err))
-		return 1
+		return ExitCodeFailed
 	}
 
 	if _, err := os.Stat(fmt.Sprint(num)); err == nil {
 		c.UI.Error(fmt.Sprintf("Cannot create directory %d: file exists", num))
-		return 1
+		return ExitCodeFailed
 	}
 
 	b, i, err := download(num, cookie)
 	if err != nil {
 		c.UI.Error(fmt.Sprint(err))
-		return 1
+		return ExitCodeFailed
 	}
 
 	if err := save(b, i, num); err != nil {
 		c.UI.Error(fmt.Sprint(err))
-		return 1
+		return ExitCodeFailed
 	}
 
-	return 0
+	return ExitCodeOK
 }
 
 // Synopsis is a one-line, short synopsis of the command.

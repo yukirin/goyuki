@@ -35,25 +35,25 @@ func (c *RunCommand) Run(args []string) int {
 	if err := flags.Parse(args); err != nil {
 		msg := fmt.Sprintf("Invalid option: %s", strings.Join(args, " "))
 		c.UI.Error(msg)
-		return 1
+		return ExitCodeFailed
 	}
 	args = flags.Args()
 
 	if len(args) < 2 {
 		msg := fmt.Sprintf("Invalid arguments: %s", strings.Join(args, " "))
 		c.UI.Error(msg)
-		return 1
+		return ExitCodeFailed
 	}
 
 	if _, err := os.Stat(args[0]); err != nil {
 		c.UI.Error("does not exist (No such directory)")
-		return 1
+		return ExitCodeFailed
 	}
 
 	tmpDir, err := MkTmpDir()
 	if err != nil {
 		c.UI.Error(fmt.Sprint(err))
-		return 1
+		return ExitCodeFailed
 	}
 	defer os.RemoveAll(tmpDir)
 
@@ -66,7 +66,7 @@ func (c *RunCommand) Run(args []string) int {
 	if !ok {
 		msg := fmt.Sprintf("Invalid language: %s", langFlag)
 		c.UI.Error(msg)
-		return 1
+		return ExitCodeFailed
 	}
 
 	if validaterFlag == "" {
@@ -76,7 +76,7 @@ func (c *RunCommand) Run(args []string) int {
 	if !ok {
 		msg := fmt.Sprintf("Invalid Validater: %s", validaterFlag)
 		c.UI.Error(msg)
-		return 1
+		return ExitCodeFailed
 	}
 
 	lCmd := LangCmd{
@@ -88,24 +88,25 @@ func (c *RunCommand) Run(args []string) int {
 	if err != nil {
 		msg := fmt.Sprintf("failed to read source file: %v", err)
 		c.UI.Error(msg)
-		return 1
+		return ExitCodeFailed
 	}
 
 	err = ioutil.WriteFile(tmpDir+"/"+source, b, FPerm)
 	if err != nil {
 		c.UI.Error(fmt.Sprint(err))
-		return 1
+		return ExitCodeFailed
 	}
 
 	infoBuf, err := ioutil.ReadFile(args[0] + "/" + "info.json")
 	if err != nil {
 		c.UI.Error(fmt.Sprintf("failed to read info file: %v", err))
-		return 1
+		return ExitCodeFailed
 	}
 
 	info := Info{}
 	if err := json.Unmarshal(infoBuf, &info); err != nil {
 		c.UI.Error(fmt.Sprint(err))
+		return ExitCodeFailed
 	}
 
 	result := Result{
@@ -122,7 +123,7 @@ func (c *RunCommand) Run(args []string) int {
 	c.UI.Output(result.String())
 	if err != nil {
 		c.UI.Output(fmt.Sprint(err))
-		return 1
+		return ExitCodeFailed
 	}
 
 	if langFlag == "java" || langFlag == "scala" {
@@ -131,7 +132,7 @@ func (c *RunCommand) Run(args []string) int {
 
 		if err != nil {
 			c.UI.Error(fmt.Sprint(err))
-			return 1
+			return ExitCodeFailed
 		}
 	}
 
@@ -139,14 +140,14 @@ func (c *RunCommand) Run(args []string) int {
 	if err != nil {
 		msg := fmt.Sprintf("input testcase error: %v", err)
 		c.UI.Error(msg)
-		return 1
+		return ExitCodeFailed
 	}
 
 	outputFiles, err := filepath.Glob(strings.Join([]string{args[0], "test_out", "*"}, "/"))
 	if err != nil {
 		msg := fmt.Sprintf("output testcase error: %v", err)
 		c.UI.Error(msg)
-		return 1
+		return ExitCodeFailed
 	}
 
 	var execBuf bytes.Buffer
@@ -155,7 +156,7 @@ func (c *RunCommand) Run(args []string) int {
 	if err := t.Execute(&execBuf, lCmd); err != nil {
 		msg := fmt.Sprintf("executing template: %v", err)
 		c.UI.Error(msg)
-		return 1
+		return ExitCodeFailed
 	}
 
 	execCom := strings.Split(execBuf.String(), " ")
@@ -189,10 +190,10 @@ func (c *RunCommand) Run(args []string) int {
 			return nil
 		}()
 		if err != nil {
-			return 1
+			return ExitCodeFailed
 		}
 	}
-	return 0
+	return ExitCodeOK
 }
 
 // Synopsis is a one-line, short synopsis of the command.

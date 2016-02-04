@@ -47,6 +47,12 @@ func (r *Result) String() string {
 	return strings.Join(strs, "\n")
 }
 
+// ExitCodes
+const (
+	ExitCodeOK = iota
+	ExitCodeFailed
+)
+
 // InfoFile is yukicoder problem infomation file
 const InfoFile = "info.json"
 

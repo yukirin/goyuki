@@ -24,7 +24,7 @@ func (c *VersionCommand) Run(args []string) int {
 	}
 
 	c.UI.Output(versionString.String())
-	return 0
+	return ExitCodeOK
 }
 
 // Synopsis is a one-line, short synopsis of the command.
