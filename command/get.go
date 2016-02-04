@@ -119,6 +119,11 @@ func download(num int, cookie string) ([]byte, *Info, error) {
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed problem request : %v", err)
 	}
+
+	if res.StatusCode == 404 {
+		return nil, nil, fmt.Errorf("the problem does not exist : %v", err)
+	}
+
 	defer res.Body.Close()
 
 	i, err := parse(res.Body)
