@@ -64,7 +64,7 @@ var Lang = map[string][]string{
 	"rb":    {"ruby --disable-gems -w -c {{.File}}", "ruby --disable-gems {{.File}}", "Ruby"},
 	"py2":   {"python2 -m py_compile {{.File}}", "python2 {{.Exec}}.pyc", "Python2"},
 	"py":    {"python3 -mpy_compile {{.File}}", "python3 {{.File}}", "Python3"},
-	"pypy2": {"pypy -m py_compile {{.File}}", "pypy2 {{.File}}", "PyPy2"},
+	"pypy2": {"pypy -m py_compile {{.File}}", "pypy {{.File}}", "PyPy2"},
 	"pypy3": {"pypy3 -mpy_compile {{.File}}", "pypy3 {{.File}}", "PyPy3"},
 	"js":    {"echo", "node {{.File}}", "JavaScript"},
 	"java":  {"javac -encoding UTF8 {{.File}}", "java -ea -Xmx700m -Xverify:none -XX:+TieredCompilation -XX:TieredStopAtLevel=1 {{.Class}}", "Java"},
