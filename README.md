@@ -25,6 +25,10 @@ $ goyuki run problem_no source_file
 -language, -l       実行する言語を指定します (デフォルト 拡張子から判別)
 -validater, -V       テストの一致方法を指定します (デフォルト diff validator)
 ```
+例(pypy2でコンパイル、実行し、dif validaterを使用する場合)
+```bash
+$ goyuki run -l pypy2 -V diff 314 sample.py
+```
 
 ####Validater(-validater オプション名)
 ##### diff Validater(diff)
