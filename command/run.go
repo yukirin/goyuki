@@ -3,7 +3,6 @@ package command
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -251,5 +250,5 @@ func classFile(dir string) (string, error) {
 			return strings.TrimSuffix(f, ".class"), nil
 		}
 	}
-	return "", errors.New("missing .class file")
+	return "", fmt.Errorf("missing .class file")
 }

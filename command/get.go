@@ -4,7 +4,6 @@ import (
 	"archive/zip"
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -102,7 +101,7 @@ func readCookie() (string, error) {
 	}
 
 	if cookie == "" {
-		return "", errors.New("$GOYUKI not set")
+		return "", fmt.Errorf("$GOYUKI not set")
 	}
 
 	return cookie, nil
@@ -121,7 +120,7 @@ func download(num int, cookie string) ([]byte, *Info, error) {
 	}
 
 	if res.StatusCode == 404 {
-		return nil, nil, fmt.Errorf("the problem does not exist: %v", err)
+		return nil, nil, fmt.Errorf("the problem does not exist")
 	}
 
 	defer res.Body.Close()
