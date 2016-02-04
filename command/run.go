@@ -55,7 +55,7 @@ var lang = map[string][][]string{
 	"js":    {{"echo"}, {"node", "__filename__"}},
 	"java":  {{"javac", "-encoding", "UTF8", "__filename__"}, {"java", "-ea", "-Xmx700m", "-Xverify:none", "-XX:+TieredCompilation", "-XX:TieredStopAtLevel=1", "__class__"}},
 	"pl":    {{"perl", "-cw", "__filename__"}, {"perl", "-X", "__filename__"}},
-	"perl6": {{"perl6", "-cw", "__filename__"}, {"perl6", "__filename__"}},
+	"pl6":   {{"perl6", "-cw", "__filename__"}, {"perl6", "__filename__"}},
 	"php":   {{"php", "-l", "__filename__"}, {"php", "__filename__"}},
 	"rs":    {{"rustc", "__filename__", "-o", "Main"}, {"./Main"}},
 	"scala": {{"scalac", "__filename__"}, {"scala", "__class__"}},
@@ -79,11 +79,11 @@ var (
 // Run run the test
 func (c *RunCommand) Run(args []string) int {
 	var (
-		langFlag     string
-		validateFlag string
+		langFlag      string
+		validaterFlag string
 	)
 
-	args, err := parseArgs([]*string{&langFlag, &validateFlag}, args)
+	args, err := parseArgs([]*string{&langFlag, &validaterFlag}, args)
 	if err != nil {
 		c.Ui.Error(fmt.Sprint(err))
 		return 1
@@ -113,8 +113,8 @@ func (c *RunCommand) Run(args []string) int {
 		ext = langFlag
 	}
 	v := validaters["diff"]
-	if validateFlag != "" {
-		v = validaters[validateFlag]
+	if validaterFlag != "" {
+		v = validaters[validaterFlag]
 	}
 
 	b, err := ioutil.ReadFile(args[1])
@@ -215,7 +215,7 @@ func (c *RunCommand) Run(args []string) int {
 
 // Synopsis is a one-line, short synopsis of the command.
 func (c *RunCommand) Synopsis() string {
-	return "テストを実行する"
+	return "コンパイル後、テストを実行する"
 }
 
 // Help is a long-form help text
@@ -224,7 +224,7 @@ func (c *RunCommand) Help() string {
 problem_noで指定された番号の問題のテストを実行する
 
 Usage:
-	goyuki run problem_no exec_file
+	goyuki run problem_no source_file
 
 `
 	return strings.TrimSpace(helpText)
@@ -234,7 +234,7 @@ func parseArgs(sp []*string, args []string) ([]string, error) {
 	flags := flag.NewFlagSet("run", flag.ContinueOnError)
 	flags.Usage = func() {}
 	flags.StringVar(sp[0], "l", "", "Specify Language")
-	flags.StringVar(sp[1], "validate", "", "Specify Validater")
+	flags.StringVar(sp[1], "validater", "", "Specify Validater")
 
 	if err := flags.Parse(args); err != nil {
 		return nil, fmt.Errorf("Invalid option: %s", strings.Join(args, " "))

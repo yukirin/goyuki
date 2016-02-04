@@ -1,12 +1,16 @@
 # goyuki
-yukicoderのテストケースをダウンロードしてローカルでテストを実行するツール
+yukicoderのテストケースをダウンロードしローカルでテストを実行するツール
 
 
 ## Usage
 ### テストを実行する
-テストを実行する
+コンパイル後、テストを実行する
 ```bash
-$ goyuki run problem_no exec_file
+$ goyuki run problem_no source_file
+```
+```bash
+-language, -l       実行する言語を指定します
+-validater, -V       テストの一致方法を指定します
 ```
 
 ### テストケースを取得する
@@ -25,6 +29,28 @@ $ goyuki run 1 main.go
 ```bash
 $ goyuki get 1
 ```
+
+###対応ファイル形式
+* C++11
+* C
+* Java
+* Perl (デフォルト)
+* Perl6
+* PHP
+* Python2
+* Python3 (デフォルト)
+* PyPy2
+* PyPy3
+* Ruby
+* Go
+* Haskell
+* Scala
+* Rust
+* Scheme
+* OCaml
+* JavaScript
+* Bash
+* Text
 
 ## Install
 
