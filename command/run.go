@@ -85,7 +85,30 @@ func (c *RunCommand) Run(args []string) int {
 		return 1
 	}
 
-	if err := compile(Lang[ext][0], &lCmd, tmpDir); err != nil {
+	infoBuf, err := ioutil.ReadFile(args[0] + "/" + "info.json")
+	if err != nil {
+		c.UI.Error(fmt.Sprintf("failed to read info file: %v", err))
+		return 1
+	}
+
+	info := Info{}
+	if err := json.Unmarshal(infoBuf, &info); err != nil {
+		c.UI.Error(fmt.Sprint(err))
+	}
+
+	result := Result{
+		info:       &info,
+		date:       time.Now(),
+		lang:       Lang[ext][2],
+		codeLength: len(b),
+	}
+
+	sTime := time.Now()
+	err = compile(Lang[ext][0], &lCmd, tmpDir)
+	result.compileTime = time.Now().Sub(sTime)
+
+	c.UI.Output(result.String())
+	if err != nil {
 		c.UI.Output(fmt.Sprint(err))
 		return 1
 	}
@@ -98,17 +121,6 @@ func (c *RunCommand) Run(args []string) int {
 			c.UI.Error(fmt.Sprint(err))
 			return 1
 		}
-	}
-
-	infoBuf, err := ioutil.ReadFile(args[0] + "/" + "info.json")
-	if err != nil {
-		c.UI.Error(fmt.Sprintf("failed to read info file: %v", err))
-		return 1
-	}
-
-	info := Info{}
-	if err := json.Unmarshal(infoBuf, &info); err != nil {
-		c.UI.Error(fmt.Sprint(err))
 	}
 
 	inputFiles, err := filepath.Glob(strings.Join([]string{args[0], "test_in", "*"}, "/"))

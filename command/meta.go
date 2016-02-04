@@ -5,9 +5,11 @@ import (
 	"crypto/rand"
 	"encoding/base32"
 	"flag"
+	"fmt"
 	"io"
 	"os"
 	"strings"
+	"time"
 )
 import (
 	"github.com/mgutz/ansi"
@@ -26,6 +28,25 @@ type LangCmd struct {
 	Class string
 }
 
+// Result is test result
+type Result struct {
+	info        *Info
+	date        time.Time
+	compileTime time.Duration
+	lang        string
+	codeLength  int
+}
+
+func (r *Result) String() string {
+	strs := make([]string, 5)
+	strs[0] = fmt.Sprintf("\n問題:\t\t%s", r.info.Name)
+	strs[1] = fmt.Sprintf("テスト日時:\t%s", r.date.Format(time.RFC1123))
+	strs[2] = fmt.Sprintf("言語:\t\t%s", r.lang)
+	strs[3] = fmt.Sprintf("コンパイル時間\t%d ms", r.compileTime.Nanoseconds()/1000000)
+	strs[4] = fmt.Sprintf("コード長\t%d byte\n", r.codeLength)
+	return strings.Join(strs, "\n")
+}
+
 // InfoFile is yukicoder problem infomation file
 const InfoFile = "info.json"
 
@@ -37,26 +58,26 @@ const (
 
 // Lang is compile and exec command template
 var Lang = map[string][]string{
-	"cpp":   {"g++ -O2 -lm -std=gnu++11 -o a.out {{.File}}", "./a.out"},
-	"go":    {"go build {{.File}}", "./{{.Exec}}"},
-	"c":     {"gcc -O2 -lm -o a.out {{.File}}", "./a.out"},
-	"rb":    {"ruby --disable-gems -w -c {{.File}}", "ruby --disable-gems {{.File}}"},
-	"py2":   {"python2 -m py_compile {{.File}}", "python2 {{.Exec}}.pyc"},
-	"py":    {"python3 -mpy_compile {{.File}}", "python3 {{.File}}"},
-	"pypy2": {"pypy2 -m py_compile {{.File}}", "pypy2 {{.File}}"},
-	"pypy3": {"pypy3 -mpy_compile {{.File}}", "pypy3 {{.File}}"},
-	"js":    {"echo", "node {{.File}}"},
-	"java":  {"javac -encoding UTF8 {{.File}}", "java -ea -Xmx700m -Xverify:none -XX:+TieredCompilation -XX:TieredStopAtLevel=1 {{.Class}}"},
-	"pl":    {"perl -cw {{.File}}", "perl -X {{.File}}"},
-	"pl6":   {"perl6 -cw {{.File}}", "perl6 {{.File}}"},
-	"php":   {"php -l {{.File}}", "php {{.File}}"},
-	"rs":    {"rustc {{.File}} -o Main", "./Main"},
-	"scala": {"scalac {{.File}}", "scala {{.Class}}"},
-	"hs":    {"ghc -o a.out -O {{.File}}", "./a.out"},
-	"scm":   {"echo", "gosh {{.File}}"},
-	"sh":    {"echo", "sh {{.File}}"},
-	"txt":   {"echo", "cat {{.File}}"},
-	"ml":    {"ocamlc str.cma {{.File}} -o a.out", "./a.out"},
+	"cpp":   {"g++ -O2 -lm -std=gnu++11 -o a.out {{.File}}", "./a.out", "C++11"},
+	"go":    {"go build {{.File}}", "./{{.Exec}}", "Go"},
+	"c":     {"gcc -O2 -lm -o a.out {{.File}}", "./a.out", "C"},
+	"rb":    {"ruby --disable-gems -w -c {{.File}}", "ruby --disable-gems {{.File}}", "Ruby"},
+	"py2":   {"python2 -m py_compile {{.File}}", "python2 {{.Exec}}.pyc", "Python2"},
+	"py":    {"python3 -mpy_compile {{.File}}", "python3 {{.File}}", "Python3"},
+	"pypy2": {"pypy2 -m py_compile {{.File}}", "pypy2 {{.File}}", "PyPy2"},
+	"pypy3": {"pypy3 -mpy_compile {{.File}}", "pypy3 {{.File}}", "PyPy3"},
+	"js":    {"echo", "node {{.File}}", "JavaScript"},
+	"java":  {"javac -encoding UTF8 {{.File}}", "java -ea -Xmx700m -Xverify:none -XX:+TieredCompilation -XX:TieredStopAtLevel=1 {{.Class}}", "Java"},
+	"pl":    {"perl -cw {{.File}}", "perl -X {{.File}}", "Perl"},
+	"pl6":   {"perl6 -cw {{.File}}", "perl6 {{.File}}", "Perl6"},
+	"php":   {"php -l {{.File}}", "php {{.File}}", "PHP"},
+	"rs":    {"rustc {{.File}} -o Main", "./Main", "Rust"},
+	"scala": {"scalac {{.File}}", "scala {{.Class}}", "Scala"},
+	"hs":    {"ghc -o a.out -O {{.File}}", "./a.out", "Haskell"},
+	"scm":   {"echo", "gosh {{.File}}", "Scheme"},
+	"sh":    {"echo", "sh {{.File}}", "Bash"},
+	"txt":   {"echo", "cat {{.File}}", "Text"},
+	"ml":    {"ocamlc str.cma {{.File}} -o a.out", "./a.out", "OCaml"},
 }
 
 // yukicoder Judge Code
