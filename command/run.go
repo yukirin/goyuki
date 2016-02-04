@@ -11,6 +11,7 @@ import (
 	"path"
 	"path/filepath"
 	"strings"
+	"text/template"
 	"time"
 )
 
@@ -67,9 +68,14 @@ func (c *RunCommand) Run(args []string) int {
 		v = Validaters[validaterFlag]
 	}
 
+	lCmd := LangCmd{
+		File: source,
+		Exec: strings.Split(source, ".")[0],
+	}
+
 	b, err := ioutil.ReadFile(args[1])
 	if err != nil {
-		msg := fmt.Sprintf("failed to read source file : %v", err)
+		msg := fmt.Sprintf("failed to read source file: %v", err)
 		c.UI.Error(msg)
 		return 1
 	}
@@ -80,14 +86,15 @@ func (c *RunCommand) Run(args []string) int {
 		return 1
 	}
 
-	if err := compile(Lang[ext][0], source, tmpDir); err != nil {
+	if err := compile(Lang[ext][0], &lCmd, tmpDir); err != nil {
 		c.UI.Output(fmt.Sprint(err))
 		return 1
 	}
 
-	class := ""
 	if ext == "java" || ext == "scala" {
-		class, err = classFile(tmpDir)
+		class, err := classFile(tmpDir)
+		lCmd.Class = class
+
 		if err != nil {
 			c.UI.Error(fmt.Sprint(err))
 			return 1
@@ -96,7 +103,7 @@ func (c *RunCommand) Run(args []string) int {
 
 	infoBuf, err := ioutil.ReadFile(args[0] + "/" + "info.json")
 	if err != nil {
-		c.UI.Error(fmt.Sprintf("failed to read info file : %v", err))
+		c.UI.Error(fmt.Sprintf("failed to read info file: %v", err))
 		return 1
 	}
 
@@ -107,34 +114,37 @@ func (c *RunCommand) Run(args []string) int {
 
 	inputFiles, err := filepath.Glob(strings.Join([]string{args[0], "test_in", "*"}, "/"))
 	if err != nil {
-		msg := fmt.Sprintf("input testcase error : %v", err)
+		msg := fmt.Sprintf("input testcase error: %v", err)
 		c.UI.Error(msg)
 		return 1
 	}
 
 	outputFiles, err := filepath.Glob(strings.Join([]string{args[0], "test_out", "*"}, "/"))
 	if err != nil {
-		msg := fmt.Sprintf("output testcase error : %v", err)
+		msg := fmt.Sprintf("output testcase error: %v", err)
 		c.UI.Error(msg)
 		return 1
 	}
 
+	var execBuf bytes.Buffer
+
+	t := template.Must(template.New("exec").Parse(Lang[ext][1]))
+	if err := t.Execute(&execBuf, lCmd); err != nil {
+		msg := fmt.Sprintf("executing template: %v", err)
+		c.UI.Error(msg)
+		return 1
+	}
+
+	execCom := strings.Split(execBuf.String(), " ")
+
 	for i := 0; i < len(inputFiles); i++ {
 		err := func() error {
-			var execCom []string
-			for _, s := range Lang[ext][1] {
-				s = strings.Replace(s, "__filename__", source, 1)
-				s = strings.Replace(s, "__class__", class, 1)
-				s = strings.Replace(s, "__exec__", strings.Replace(source, path.Ext(source), "", 1), 1)
-				execCom = append(execCom, s)
-			}
-
 			cmd := exec.Command(execCom[0], execCom[1:]...)
 			cmd.Dir = tmpDir
 
 			input, err := os.Open(inputFiles[i])
 			if err != nil {
-				msg := fmt.Sprintf("input test file error : %v", err)
+				msg := fmt.Sprintf("input test file error: %v", err)
 				c.UI.Error(msg)
 				return err
 			}
@@ -142,15 +152,13 @@ func (c *RunCommand) Run(args []string) int {
 
 			output, err := ioutil.ReadFile(outputFiles[i])
 			if err != nil {
-				msg := fmt.Sprintf("output test file error : %v", err)
+				msg := fmt.Sprintf("output test file error: %v", err)
 				c.UI.Error(msg)
 				return err
 			}
 
 			var buf bytes.Buffer
-			cmd.Stdin = input
-			cmd.Stdout = &buf
-			cmd.Stderr = os.Stderr
+			cmd.Stdin, cmd.Stdout, cmd.Stderr = input, &buf, os.Stderr
 
 			result := judge(cmd, output, v, &info)
 			c.UI.Output(result)
@@ -184,12 +192,15 @@ Options:
 	return strings.TrimSpace(helpText)
 }
 
-func compile(cmds []string, file, tmpDir string) error {
-	var compileCom []string
-	for _, s := range cmds {
-		s = strings.Replace(s, "__filename__", file, 1)
-		compileCom = append(compileCom, s)
+func compile(cmds string, lCmd *LangCmd, tmpDir string) error {
+	var b bytes.Buffer
+
+	t := template.Must(template.New("compile").Parse(cmds))
+	if err := t.Execute(&b, lCmd); err != nil {
+		return fmt.Errorf("executing template: %v", err)
 	}
+
+	compileCom := strings.Split(b.String(), " ")
 
 	cmd := exec.Command(compileCom[0], compileCom[1:]...)
 	cmd.Dir = tmpDir
@@ -217,10 +228,10 @@ func judge(cmd *exec.Cmd, expected []byte, v Validater, i *Info) string {
 		}
 
 		if !v.Validate(cmd.Stdout.(*bytes.Buffer).Bytes(), expected) {
-			return fmt.Sprintf("%s (Wrong Answer) : %d ms", WA, t)
+			return fmt.Sprintf("%s (Wrong Answer): %d ms", WA, t)
 		}
 
-		return fmt.Sprintf("%s (Accepted) : %d ms", AC, t)
+		return fmt.Sprintf("%s (Accepted): %d ms", AC, t)
 	case <-time.After(time.Duration(i.Time) * time.Second):
 		return fmt.Sprintf("%s (Time Limit Exceeded)", TLE)
 	}

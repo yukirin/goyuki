@@ -19,6 +19,13 @@ type Meta struct {
 	UI cli.Ui
 }
 
+// LangCmd is struct to fill Lang template
+type LangCmd struct {
+	File  string
+	Exec  string
+	Class string
+}
+
 // InfoFile is yukicoder problem infomation file
 const InfoFile = "info.json"
 
@@ -28,28 +35,28 @@ const (
 	FPerm = 0644
 )
 
-// Lang is compile and exec command
-var Lang = map[string][][]string{
-	"cpp":   {{"g++", "-O2", "-lm", "-std=gnu++11", "-o", "a.out", "__filename__"}, {"./a.out"}},
-	"go":    {{"go", "build", "__filename__"}, {"./__exec__"}},
-	"c":     {{"gcc", "-O2", "-lm", "-o", "a.out", "__filename__"}, {"./a.out"}},
-	"rb":    {{"ruby", "--disable-gems", "-w", "-c", "__filename__"}, {"ruby", "--disable-gems", "__filename__"}},
-	"py2":   {{"python2", "-m", "py_compile", "__filename__"}, {"python2", "__exec__.pyc"}},
-	"py":    {{"python3", "-mpy_compile", "__filename__"}, {"python3", "__filename__"}},
-	"pypy2": {{"pypy2", "-m", "py_compile", "__filename__"}, {"pypy2", "__filename__"}},
-	"pypy3": {{"pypy3", "-mpy_compile", "__filename__"}, {"pypy3", "__filename__"}},
-	"js":    {{"echo"}, {"node", "__filename__"}},
-	"java":  {{"javac", "-encoding", "UTF8", "__filename__"}, {"java", "-ea", "-Xmx700m", "-Xverify:none", "-XX:+TieredCompilation", "-XX:TieredStopAtLevel=1", "__class__"}},
-	"pl":    {{"perl", "-cw", "__filename__"}, {"perl", "-X", "__filename__"}},
-	"pl6":   {{"perl6", "-cw", "__filename__"}, {"perl6", "__filename__"}},
-	"php":   {{"php", "-l", "__filename__"}, {"php", "__filename__"}},
-	"rs":    {{"rustc", "__filename__", "-o", "Main"}, {"./Main"}},
-	"scala": {{"scalac", "__filename__"}, {"scala", "__class__"}},
-	"hs":    {{"ghc", "-o", "a.out", "-O", "__filename__"}, {"./a.out"}},
-	"scm":   {{"echo"}, {"gosh", "__filename__"}},
-	"sh":    {{"echo"}, {"sh", "__filename__"}},
-	"txt":   {{"echo"}, {"cat", "__filename__"}},
-	"ml":    {{"ocamlc", "str.cma", "__filename__", "-o", "a.out"}, {"./a.out"}},
+// Lang is compile and exec command template
+var Lang = map[string][]string{
+	"cpp":   {"g++ -O2 -lm -std=gnu++11 -o a.out {{.File}}", "./a.out"},
+	"go":    {"go build {{.File}}", "./{{.Exec}}"},
+	"c":     {"gcc -O2 -lm -o a.out {{.File}}", "./a.out"},
+	"rb":    {"ruby --dissable-gems -w -c {{.File}}", "ruby --disable-gems {{.File}}"},
+	"py2":   {"python2 -m py_compile {{.File}}", "python2 {{.Exec}}.pyc"},
+	"py":    {"python3 -mpy_compile {{.File}}", "python3 {{.File}}"},
+	"pypy2": {"pypy2 -m py_compile {{.File}}", "pypy2 {{.File}}"},
+	"pypy3": {"pypy3 -mpy_compile {{.File}}", "pypy3 {{.File}}"},
+	"js":    {"echo", "node {{.File}}"},
+	"java":  {"javac -encoding UTF8 {{.File}}", "java -ea -Xmx700m -Xverify:none -XX:+TieredCompilation -XX:TieredStopAtLevel=1 {{.Class}}"},
+	"pl":    {"perl -cw {{.File}}", "perl -X {{.File}}"},
+	"pl6":   {"perl6 -cw {{.File}}", "perl6 {{.File}}"},
+	"php":   {"php -l {{.File}}", "php {{.File}}"},
+	"rs":    {"rustc {{.File}} -o Main", "./Main"},
+	"scala": {"scalac {{.File}}", "scala {{.Class}}"},
+	"hs":    {"ghc -o a.out -O {{.File}}", "./a.out"},
+	"scm":   {"echo", "gosh {{.File}}"},
+	"sh":    {"echo", "sh {{.File}}"},
+	"txt":   {"echo", "cat {{.File}}"},
+	"ml":    {"ocamlc str.cma {{.File}} -o a.out", "./a.out"},
 }
 
 // yukicoder Judge Code
