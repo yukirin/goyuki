@@ -82,12 +82,12 @@ var Lang = map[string][]string{
 
 // yukicoder Judge Code
 var (
-	AC  = ansi.Color("AC", "green+bh")
-	WA  = ansi.Color("WA", "yellow+bh")
-	TLE = ansi.Color("TLE", "yellow+bh")
-	MLE = ansi.Color("MLE", "yellow+bh")
-	RE  = ansi.Color("RE", "yellow+bh")
-	CE  = ansi.Color("CE", "yellow+bh")
+	AC  = ansi.Color("[AC]", "green+bh")
+	WA  = ansi.Color("[WA]", "yellow+bh")
+	TLE = ansi.Color("[TLE]", "yellow+bh")
+	MLE = ansi.Color("[MLE]", "yellow+bh")
+	RE  = ansi.Color("[RE]", "yellow+bh")
+	CE  = ansi.Color("[CE]", "yellow+bh")
 )
 
 // NewFlagSet generates common flag.FlagSet

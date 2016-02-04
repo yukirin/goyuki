@@ -172,7 +172,7 @@ func (c *RunCommand) Run(args []string) int {
 			cmd.Stdin, cmd.Stdout, cmd.Stderr = input, &buf, os.Stderr
 
 			result := judge(cmd, output, v, &info)
-			c.UI.Output(result)
+			c.UI.Output(fmt.Sprintf("%s\t%s", inputFiles[i], result))
 			return nil
 		}()
 		if err != nil {
@@ -218,7 +218,7 @@ func compile(cmds string, lCmd *LangCmd, tmpDir string) error {
 	cmd.Dir = tmpDir
 	cmd.Stdin, cmd.Stdout, cmd.Stderr = os.Stdin, os.Stdout, os.Stderr
 	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("%s (Compile Error)", CE)
+		return fmt.Errorf("%s: %s", lCmd.File, CE)
 	}
 	return nil
 }
@@ -236,16 +236,16 @@ func judge(cmd *exec.Cmd, expected []byte, v Validater, i *Info) string {
 		t := time.Now().Sub(sTime).Nanoseconds() / 1000000
 
 		if err != nil {
-			return fmt.Sprintf("%s (Runtime Error)", RE)
+			return RE
 		}
 
 		if !v.Validate(cmd.Stdout.(*bytes.Buffer).Bytes(), expected) {
-			return fmt.Sprintf("%s (Wrong Answer): %d ms", WA, t)
+			return fmt.Sprintf("%s: %d ms", WA, t)
 		}
 
-		return fmt.Sprintf("%s (Accepted): %d ms", AC, t)
+		return fmt.Sprintf("%s: %d ms", AC, t)
 	case <-time.After(time.Duration(i.Time) * time.Second):
-		return fmt.Sprintf("%s (Time Limit Exceeded)", TLE)
+		return TLE
 	}
 }
 
