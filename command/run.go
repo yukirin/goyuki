@@ -172,7 +172,8 @@ func (c *RunCommand) Run(args []string) int {
 			cmd.Stdin, cmd.Stdout, cmd.Stderr = input, &buf, os.Stderr
 
 			result := judge(cmd, output, v, &info)
-			c.UI.Output(fmt.Sprintf("%s\t%s", inputFiles[i], result))
+			_, testFile := path.Split(inputFiles[i])
+			c.UI.Output(fmt.Sprintf("%s\t%s", testFile, result))
 			return nil
 		}()
 		if err != nil {
