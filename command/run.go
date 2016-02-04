@@ -6,7 +6,6 @@ import (
 	"encoding/base32"
 	"encoding/json"
 	"errors"
-	"flag"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -83,29 +82,36 @@ func (c *RunCommand) Run(args []string) int {
 		validaterFlag string
 	)
 
-	args, err := parseArgs([]*string{&langFlag, &validaterFlag}, args)
-	if err != nil {
-		c.Ui.Error(fmt.Sprint(err))
+	flags := c.Meta.NewFlagSet("run", c.Help())
+	flags.StringVar(&langFlag, "l", "", "Specify Language")
+	flags.StringVar(&langFlag, "language", "", "Specify Language")
+	flags.StringVar(&validaterFlag, "V", "", "Specify Validater")
+	flags.StringVar(&validaterFlag, "validater", "", "Specify Validater")
+
+	if err := flags.Parse(args); err != nil {
+		msg := fmt.Sprintf("Invalid option: %s", strings.Join(args, " "))
+		c.UI.Error(msg)
 		return 1
 	}
+	args = flags.Args()
 
 	if len(args) < 2 {
 		msg := fmt.Sprintf("Invalid arguments: %s", strings.Join(args, " "))
-		c.Ui.Error(msg)
+		c.UI.Error(msg)
 		return 1
 	}
 
 	if _, err := os.Stat(args[0]); err != nil {
-		c.Ui.Error("does not exist (No such directory)")
+		c.UI.Error("does not exist (No such directory)")
 		return 1
 	}
 
-	tmpDirName, err := mkTmpDir()
+	tmpDir, err := mkTmpDir()
 	if err != nil {
-		c.Ui.Error(fmt.Sprint(err))
+		c.UI.Error(fmt.Sprint(err))
 		return 1
 	}
-	defer os.RemoveAll(tmpDirName)
+	defer os.RemoveAll(tmpDir)
 
 	_, source := path.Split(args[1])
 	ext := path.Ext(args[1])[1:]
@@ -120,56 +126,56 @@ func (c *RunCommand) Run(args []string) int {
 	b, err := ioutil.ReadFile(args[1])
 	if err != nil {
 		msg := fmt.Sprintf("failed to read source file : %v", err)
-		c.Ui.Error(msg)
+		c.UI.Error(msg)
 		return 1
 	}
 
-	err = ioutil.WriteFile(tmpDirName+"/"+source, b, FPerm)
+	err = ioutil.WriteFile(tmpDir+"/"+source, b, FPerm)
 	if err != nil {
-		c.Ui.Error(fmt.Sprint(err))
+		c.UI.Error(fmt.Sprint(err))
 		return 1
 	}
 
-	if err := compile(lang[ext][0], source, tmpDirName); err != nil {
-		c.Ui.Output(fmt.Sprint(err))
+	if err := compile(lang[ext][0], source, tmpDir); err != nil {
+		c.UI.Output(fmt.Sprint(err))
 		return 1
 	}
 
 	class := ""
 	if ext == "java" || ext == "scala" {
-		class, err = classFile(tmpDirName)
+		class, err = classFile(tmpDir)
 		if err != nil {
-			c.Ui.Error(fmt.Sprint(err))
+			c.UI.Error(fmt.Sprint(err))
 			return 1
 		}
 	}
 
 	infoBuf, err := ioutil.ReadFile(args[0] + "/" + "info.json")
 	if err != nil {
-		c.Ui.Error(fmt.Sprintf("failed to read info file : %v", err))
+		c.UI.Error(fmt.Sprintf("failed to read info file : %v", err))
 		return 1
 	}
 
 	info := Info{}
 	if err := json.Unmarshal(infoBuf, &info); err != nil {
-		c.Ui.Error(fmt.Sprint(err))
+		c.UI.Error(fmt.Sprint(err))
 	}
 
-	inFiles, err := filepath.Glob(strings.Join([]string{args[0], "test_in", "*"}, "/"))
+	inputFiles, err := filepath.Glob(strings.Join([]string{args[0], "test_in", "*"}, "/"))
 	if err != nil {
 		msg := fmt.Sprintf("input testcase error : %v", err)
-		c.Ui.Error(msg)
+		c.UI.Error(msg)
 		return 1
 	}
 
-	outFiles, err := filepath.Glob(strings.Join([]string{args[0], "test_out", "*"}, "/"))
+	outputFiles, err := filepath.Glob(strings.Join([]string{args[0], "test_out", "*"}, "/"))
 	if err != nil {
 		msg := fmt.Sprintf("output testcase error : %v", err)
-		c.Ui.Error(msg)
+		c.UI.Error(msg)
 		return 1
 	}
 
-	for i := 0; i < len(inFiles); i++ {
+	for i := 0; i < len(inputFiles); i++ {
 		err := func() error {
 			var execCom []string
 			for _, s := range lang[ext][1] {
@@ -180,20 +186,20 @@ func (c *RunCommand) Run(args []string) int {
 			}
 
 			cmd := exec.Command(execCom[0], execCom[1:]...)
-			cmd.Dir = tmpDirName
+			cmd.Dir = tmpDir
 
-			input, err := os.Open(inFiles[i])
+			input, err := os.Open(inputFiles[i])
 			if err != nil {
 				msg := fmt.Sprintf("input test file error : %v", err)
-				c.Ui.Error(msg)
+				c.UI.Error(msg)
 				return err
 			}
 			defer input.Close()
 
-			output, err := ioutil.ReadFile(outFiles[i])
+			output, err := ioutil.ReadFile(outputFiles[i])
 			if err != nil {
 				msg := fmt.Sprintf("output test file error : %v", err)
-				c.Ui.Error(msg)
+				c.UI.Error(msg)
 				return err
 			}
 
@@ -203,7 +209,7 @@ func (c *RunCommand) Run(args []string) int {
 			cmd.Stderr = os.Stderr
 
 			result := judge(cmd, output, v, &info)
-			c.Ui.Output(result)
+			c.UI.Output(result)
 			return nil
 		}()
 		if err != nil {
@@ -232,18 +238,6 @@ Options:
 
 `
 	return strings.TrimSpace(helpText)
-}
-
-func parseArgs(sp []*string, args []string) ([]string, error) {
-	flags := flag.NewFlagSet("run", flag.ContinueOnError)
-	flags.Usage = func() {}
-	flags.StringVar(sp[0], "l", "", "Specify Language")
-	flags.StringVar(sp[1], "validater", "", "Specify Validater")
-
-	if err := flags.Parse(args); err != nil {
-		return nil, fmt.Errorf("Invalid option: %s", strings.Join(args, " "))
-	}
-	return flags.Args(), nil
 }
 
 func compile(cmds []string, file, tmpDir string) error {

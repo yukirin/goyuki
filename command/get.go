@@ -44,35 +44,35 @@ const (
 func (c *GetCommand) Run(args []string) int {
 	if len(args) < 1 {
 		msg := fmt.Sprintf("Invalid arguments: %s", strings.Join(args, " "))
-		c.Ui.Error(msg)
+		c.UI.Error(msg)
 		return 1
 	}
 
 	cookie, err := readCookie(config)
 	if err != nil {
-		c.Ui.Error(fmt.Sprint(err))
+		c.UI.Error(fmt.Sprint(err))
 		return 1
 	}
 
 	num, err := strconv.Atoi(args[0])
 	if err != nil {
-		c.Ui.Error(fmt.Sprint(err))
+		c.UI.Error(fmt.Sprint(err))
 		return 1
 	}
 
 	if _, err := os.Stat(fmt.Sprint(num)); err == nil {
-		c.Ui.Error(fmt.Sprintf("Cannot create directory %d: file exists", num))
+		c.UI.Error(fmt.Sprintf("Cannot create directory %d: file exists", num))
 		return 1
 	}
 
 	b, i, err := download(num, cookie)
 	if err != nil {
-		c.Ui.Error(fmt.Sprint(err))
+		c.UI.Error(fmt.Sprint(err))
 		return 1
 	}
 
 	if err := save(b, i, num); err != nil {
-		c.Ui.Error(fmt.Sprint(err))
+		c.UI.Error(fmt.Sprint(err))
 		return 1
 	}
 
