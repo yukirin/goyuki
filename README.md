@@ -10,12 +10,12 @@ $ goyuki run problem_no source_file
 ```
 #### オプション
 ```bash
--language, -l       実行する言語を指定します
--validater, -V       テストの一致方法を指定します
+-language, -l       実行する言語を指定します (デフォルト 拡張子から判別)
+-validater, -V       テストの一致方法を指定します (デフォルト diff validator)
 ```
 
 ####Validater
-##### diff Validater (デフォルト)
+##### diff Validater
 テストファイルと実行ファイルの出力が完全一致しているか確認する
 
 
