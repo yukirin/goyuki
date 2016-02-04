@@ -63,6 +63,7 @@ var lang = map[string][][]string{
 	"scm":   {{"echo"}, {"gosh", "__filename__"}},
 	"sh":    {{"echo"}, {"sh", "__filename__"}},
 	"txt":   {{"echo"}, {"cat", "__filename__"}},
+	"ml":    {{"ocamlc", "str.cma", "__filename__", "-o", "a.out"}, {"./a.out"}},
 }
 
 // yukicoder Judge Code
