@@ -3,7 +3,7 @@ yukicoderのテストケースをダウンロードしローカルでテスト�
 
 
 ## Usage
-### get コマンド
+### `get` コマンド
 #### はじめに、GOYUKI環境変数を設定する
 yukicoderにログイン(twitter,github)した状態でブラウザのcookieから REVEL\_SESSIONの値を取り出し、GOYUKI環境変数にその値を設定する
 ```bash
@@ -14,7 +14,7 @@ $ export GOYUKI=12345hogehoge # zshの場合
 $ goyuki get problem_no
 ```
 
-### run コマンド
+### `run` コマンド
 #### テストを実行する
 コンパイル後、テストを実行する
 ```bash
