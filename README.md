@@ -26,8 +26,8 @@ $ goyuki run problem_no source_file
 -validater, -V       テストの一致方法を指定します (デフォルト diff validator)
 ```
 
-####Validater
-##### diff Validater
+####Validater(-validater オプション名)
+##### diff Validater(diff)
 テストファイルと実行ファイルの出力が完全一致しているか確認する
 
 
@@ -42,27 +42,27 @@ $ goyuki run 1 main.go
 $ goyuki get 1
 ```
 
-###対応ファイル形式
-* C++11
-* C
-* Java
-* Perl (デフォルト)
-* Perl6
-* PHP
-* Python2
-* Python3 (デフォルト)
-* PyPy2
-* PyPy3
-* Ruby
-* Go
-* Haskell
-* Scala
-* Rust
-* Scheme
-* OCaml
-* JavaScript
-* Bash
-* Text
+###対応ファイル形式(-language オプション名)
+* C++11 (cpp)
+* C (c)
+* Java (java)
+* Perl (pl) (perlのデフォルト)
+* Perl6 (pl6)
+* PHP (php)
+* Python2 (py2)
+* Python3 (py) (pythonのデフォルト)
+* PyPy2 (pypy2)
+* PyPy3 (pypy3)
+* Ruby (rb)
+* Go (go)
+* Haskell (hs)
+* Scala (scala)
+* Rust (rs)
+* Scheme (scm)
+* OCaml (ml)
+* JavaScript (js)
+* Bash (sh)
+* Text (txt)
 
 ## Install
 
