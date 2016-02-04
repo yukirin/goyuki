@@ -3,7 +3,19 @@ yukicoderのテストケースをダウンロードしローカルでテスト�
 
 
 ## Usage
-### テストを実行する
+### get コマンド
+#### はじめに、GOYUKI環境変数を設定する
+yukicoderにログイン(twitter,github)した状態でブラウザのcookieから REVEL\_SESSIONの値を取り出し、GOYUKI環境変数にその値を設定する
+```bash
+$ export GOYUKI=12345hogehoge # zshの場合
+```
+####テストケースを取得する
+```bash
+$ goyuki get problem_no
+```
+
+### run コマンド
+#### テストを実行する
 コンパイル後、テストを実行する
 ```bash
 $ goyuki run problem_no source_file
@@ -19,14 +31,8 @@ $ goyuki run problem_no source_file
 テストファイルと実行ファイルの出力が完全一致しているか確認する
 
 
-### テストケースを取得する
-テストケースを取得する
-```bash
-$ goyuki get problem_no
-```
-
 ####問題No.
-[No.1 道のショートカット](http://yukicoder.me/problems/17)のテストを実行したい場合は(実行ファイルをmain.goとした場合)
+[No.1 道のショートカット](http://yukicoder.me/problems/17)のテストを実行したい場合(ソースファイルをmain.goとした場合)
 ```bash
 $ goyuki run 1 main.go
 ```
