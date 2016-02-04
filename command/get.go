@@ -33,13 +33,6 @@ type Info struct {
 	Mem   int
 }
 
-const config = "~/.goyuki"
-const infoFile = "info.json"
-const (
-	DPerm = 0755
-	FPerm = 0644
-)
-
 // Run get test case
 func (c *GetCommand) Run(args []string) int {
 	if len(args) < 1 {
@@ -48,7 +41,7 @@ func (c *GetCommand) Run(args []string) int {
 		return 1
 	}
 
-	cookie, err := readCookie(config)
+	cookie, err := readCookie(Config)
 	if err != nil {
 		c.UI.Error(fmt.Sprint(err))
 		return 1
@@ -171,7 +164,7 @@ func save(buf []byte, i *Info, num int) error {
 		return err
 	}
 
-	infoName := strings.Join([]string{baseDir, infoFile}, "/")
+	infoName := strings.Join([]string{baseDir, InfoFile}, "/")
 	if err := ioutil.WriteFile(infoName, b, FPerm); err != nil {
 		return err
 	}

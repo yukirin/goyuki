@@ -2,12 +2,9 @@ package command
 
 import (
 	"bytes"
-	"crypto/rand"
-	"encoding/base32"
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"os"
 	"os/exec"
@@ -15,8 +12,6 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
-
-	"github.com/mgutz/ansi"
 )
 
 // RunCommand is a Command that run the test
@@ -41,39 +36,6 @@ func (d *DiffValidater) Validate(actual, expected []byte) bool {
 var validaters = map[string]Validater{
 	"diff": &DiffValidater{},
 }
-
-var lang = map[string][][]string{
-	"cpp":   {{"g++", "-O2", "-lm", "-std=gnu++11", "-o", "a.out", "__filename__"}, {"./a.out"}},
-	"go":    {{"go", "build", "__filename__"}, {"./__exec__"}},
-	"c":     {{"gcc", "-O2", "-lm", "-o", "a.out", "__filename__"}, {"./a.out"}},
-	"rb":    {{"ruby", "--disable-gems", "-w", "-c", "__filename__"}, {"ruby", "--disable-gems", "__filename__"}},
-	"py2":   {{"python2", "-m", "py_compile", "__filename__"}, {"python2", "__exec__.pyc"}},
-	"py":    {{"python3", "-mpy_compile", "__filename__"}, {"python3", "__filename__"}},
-	"pypy2": {{"pypy2", "-m", "py_compile", "__filename__"}, {"pypy2", "__filename__"}},
-	"pypy3": {{"pypy3", "-mpy_compile", "__filename__"}, {"pypy3", "__filename__"}},
-	"js":    {{"echo"}, {"node", "__filename__"}},
-	"java":  {{"javac", "-encoding", "UTF8", "__filename__"}, {"java", "-ea", "-Xmx700m", "-Xverify:none", "-XX:+TieredCompilation", "-XX:TieredStopAtLevel=1", "__class__"}},
-	"pl":    {{"perl", "-cw", "__filename__"}, {"perl", "-X", "__filename__"}},
-	"pl6":   {{"perl6", "-cw", "__filename__"}, {"perl6", "__filename__"}},
-	"php":   {{"php", "-l", "__filename__"}, {"php", "__filename__"}},
-	"rs":    {{"rustc", "__filename__", "-o", "Main"}, {"./Main"}},
-	"scala": {{"scalac", "__filename__"}, {"scala", "__class__"}},
-	"hs":    {{"ghc", "-o", "a.out", "-O", "__filename__"}, {"./a.out"}},
-	"scm":   {{"echo"}, {"gosh", "__filename__"}},
-	"sh":    {{"echo"}, {"sh", "__filename__"}},
-	"txt":   {{"echo"}, {"cat", "__filename__"}},
-	"ml":    {{"ocamlc", "str.cma", "__filename__", "-o", "a.out"}, {"./a.out"}},
-}
-
-// yukicoder Judge Code
-var (
-	AC  = ansi.Color("AC", "green+bh")
-	WA  = ansi.Color("WA", "yellow+bh")
-	TLE = ansi.Color("TLE", "yellow+bh")
-	MLE = ansi.Color("MLE", "yellow+bh")
-	RE  = ansi.Color("RE", "yellow+bh")
-	CE  = ansi.Color("CE", "yellow+bh")
-)
 
 // Run run the test
 func (c *RunCommand) Run(args []string) int {
@@ -106,7 +68,7 @@ func (c *RunCommand) Run(args []string) int {
 		return 1
 	}
 
-	tmpDir, err := mkTmpDir()
+	tmpDir, err := MkTmpDir()
 	if err != nil {
 		c.UI.Error(fmt.Sprint(err))
 		return 1
@@ -136,7 +98,7 @@ func (c *RunCommand) Run(args []string) int {
 		return 1
 	}
 
-	if err := compile(lang[ext][0], source, tmpDir); err != nil {
+	if err := compile(Lang[ext][0], source, tmpDir); err != nil {
 		c.UI.Output(fmt.Sprint(err))
 		return 1
 	}
@@ -178,7 +140,7 @@ func (c *RunCommand) Run(args []string) int {
 	for i := 0; i < len(inputFiles); i++ {
 		err := func() error {
 			var execCom []string
-			for _, s := range lang[ext][1] {
+			for _, s := range Lang[ext][1] {
 				s = strings.Replace(s, "__filename__", source, 1)
 				s = strings.Replace(s, "__class__", class, 1)
 				s = strings.Replace(s, "__exec__", strings.Replace(source, path.Ext(source), "", 1), 1)
@@ -280,32 +242,6 @@ func judge(cmd *exec.Cmd, expected []byte, v Validater, i *Info) string {
 	case <-time.After(time.Duration(i.Time) * time.Second):
 		return fmt.Sprintf("%s (Time Limit Exceeded)", TLE)
 	}
-}
-
-func tmpFile() (string, error) {
-	b := make([]byte, 25)
-	_, err := io.ReadFull(rand.Reader, b)
-	if err != nil {
-		return "", err
-	}
-
-	return strings.TrimRight(base32.StdEncoding.EncodeToString(b), "="), nil
-}
-
-func mkTmpDir() (string, error) {
-	tmpDir := os.TempDir()
-	dir, err := tmpFile()
-	if err != nil {
-		return "", err
-	}
-	tmpDir += "/" + dir
-
-	err = os.Mkdir(tmpDir, DPerm)
-	if err != nil {
-		return "", err
-	}
-
-	return tmpDir, nil
 }
 
 func classFile(dir string) (string, error) {
