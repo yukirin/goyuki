@@ -117,11 +117,11 @@ func download(num int, cookie string) ([]byte, *Info, error) {
 		MaxRedirects: 1,
 	}.Do()
 	if err != nil {
-		return nil, nil, fmt.Errorf("failed problem request : %v", err)
+		return nil, nil, fmt.Errorf("failed problem request: %v", err)
 	}
 
 	if res.StatusCode == 404 {
-		return nil, nil, fmt.Errorf("the problem does not exist : %v", err)
+		return nil, nil, fmt.Errorf("the problem does not exist: %v", err)
 	}
 
 	defer res.Body.Close()
@@ -143,7 +143,7 @@ func download(num int, cookie string) ([]byte, *Info, error) {
 		Uri: testCaseURI,
 	}.WithCookie(session).Do()
 	if err != nil {
-		return nil, nil, fmt.Errorf("failed testcase request : %v", err)
+		return nil, nil, fmt.Errorf("failed testcase request: %v", err)
 	}
 	defer res.Body.Close()
 
@@ -218,7 +218,7 @@ func parse(r io.Reader) (*Info, error) {
 	i := &Info{}
 	doc, err := goquery.NewDocumentFromReader(r)
 	if err != nil {
-		return nil, fmt.Errorf("problem parse error : %v", err)
+		return nil, fmt.Errorf("problem parse error: %v", err)
 	}
 
 	content := doc.Find("div#content")
