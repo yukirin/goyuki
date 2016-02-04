@@ -8,10 +8,16 @@ yukicoderのテストケースをダウンロードしローカルでテスト�
 ```bash
 $ goyuki run problem_no source_file
 ```
+#### オプション
 ```bash
 -language, -l       実行する言語を指定します
 -validater, -V       テストの一致方法を指定します
 ```
+
+####Validater
+##### diff Validater (デフォルト)
+テストファイルと実行ファイルの出力が完全一致しているか確認する
+
 
 ### テストケースを取得する
 テストケースを取得する
