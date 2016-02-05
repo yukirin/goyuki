@@ -24,6 +24,7 @@ func (c *RunCommand) Run(args []string) int {
 	var (
 		langFlag      string
 		validaterFlag string
+		verboseFlag   bool
 	)
 
 	flags := c.Meta.NewFlagSet("run", c.Help())
@@ -31,6 +32,8 @@ func (c *RunCommand) Run(args []string) int {
 	flags.StringVar(&langFlag, "language", "", "Specify Language")
 	flags.StringVar(&validaterFlag, "V", "", "Specify Validater")
 	flags.StringVar(&validaterFlag, "validater", "", "Specify Validater")
+	flags.BoolVar(&verboseFlag, "vb", false, "increase amount of output")
+	flags.BoolVar(&verboseFlag, "verbose", false, "increase amount of output")
 
 	if err := flags.Parse(args); err != nil {
 		msg := fmt.Sprintf("Invalid option: %s", strings.Join(args, " "))
@@ -117,7 +120,7 @@ func (c *RunCommand) Run(args []string) int {
 	}
 
 	sTime := time.Now()
-	err = compile(lang[0], &lCmd, tmpDir)
+	err = compile(lang[0], &lCmd, tmpDir, verboseFlag)
 	result.compileTime = time.Now().Sub(sTime)
 
 	c.UI.Output(result.String())
@@ -183,6 +186,9 @@ func (c *RunCommand) Run(args []string) int {
 
 			var buf bytes.Buffer
 			cmd.Stdin, cmd.Stdout, cmd.Stderr = input, &buf, ioutil.Discard
+			if verboseFlag {
+				cmd.Stdout, cmd.Stderr = os.Stdout, os.Stderr
+			}
 
 			result := judge(cmd, output, v, &info)
 			_, testFile := path.Split(inputFiles[i])
@@ -218,7 +224,7 @@ Options:
 	return strings.TrimSpace(helpText)
 }
 
-func compile(cmds string, lCmd *LangCmd, tmpDir string) error {
+func compile(cmds string, lCmd *LangCmd, tmpDir string, vb bool) error {
 	var b bytes.Buffer
 
 	t := template.Must(template.New("compile").Parse(cmds))
@@ -231,6 +237,10 @@ func compile(cmds string, lCmd *LangCmd, tmpDir string) error {
 	cmd := exec.Command(compileCom[0], compileCom[1:]...)
 	cmd.Dir = tmpDir
 	cmd.Stdin, cmd.Stdout, cmd.Stderr = os.Stdin, ioutil.Discard, ioutil.Discard
+	if vb {
+		cmd.Stdout, cmd.Stderr = os.Stdout, os.Stderr
+	}
+
 	if err := cmd.Run(); err != nil {
 		return fmt.Errorf("%s: %s", CE, lCmd.File)
 	}
