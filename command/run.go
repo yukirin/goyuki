@@ -210,7 +210,7 @@ func (c *RunCommand) Synopsis() string {
 // Help is a long-form help text
 func (c *RunCommand) Help() string {
 	helpText := `
-problem_noで指定された番号の問題のテストを実行する
+source_fileをコンパイル後、problem_noで指定された番号の問題のテストを実行する
 
 Usage:
 	goyuki run problem_no source_file
