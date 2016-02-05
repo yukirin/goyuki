@@ -61,6 +61,9 @@ func TestGetCommandWrongProblem(t *testing.T) {
 		},
 	}
 
+	clearFunc := setEnv("GOYUKI", "test")
+	defer clearFunc()
+
 	result := "the problem does not exist"
 	args := []string{"99999"}
 	code := c.Run(args)
@@ -81,6 +84,9 @@ func TestGetCommandFlag(t *testing.T) {
 		{args: []string{}, code: ExitCodeFailed, result: "Invalid arguments"},
 		{args: []string{"foobar"}, code: ExitCodeFailed, result: "invalid syntax"},
 	}
+
+	clearFunc := setEnv("GOYUKI", "test")
+	defer clearFunc()
 
 	for _, testCase := range testCases {
 		ui := new(cli.MockUi)
