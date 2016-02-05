@@ -69,3 +69,24 @@ func TestGetCommandEnvUnSet(t *testing.T) {
 		t.Errorf("bad status code = %v; want %v\nError message = %s; want %s", code, ExitCodeFailed, errs, result)
 	}
 }
+
+func TestGetCommandWrongCookie(t *testing.T) {
+	ui := new(cli.MockUi)
+	c := &GetCommand{
+		Meta: Meta{
+			UI: ui,
+		},
+	}
+
+	clearFunc := setEnv("GOYUKI", "test")
+	defer clearFunc()
+
+	result := "please log in to yukicoder"
+	args := []string{"337"}
+	code := c.Run(args)
+	errs := ui.ErrorWriter.String()
+
+	if code != ExitCodeFailed || !strings.Contains(errs, result) {
+		t.Errorf("bad status code = %v; want %v\nError message = %s; want %s", code, ExitCodeFailed, errs, result)
+	}
+}
