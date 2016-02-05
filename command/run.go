@@ -182,7 +182,7 @@ func (c *RunCommand) Run(args []string) int {
 			}
 
 			var buf bytes.Buffer
-			cmd.Stdin, cmd.Stdout, cmd.Stderr = input, &buf, os.Stderr
+			cmd.Stdin, cmd.Stdout, cmd.Stderr = input, &buf, ioutil.Discard
 
 			result := judge(cmd, output, v, &info)
 			_, testFile := path.Split(inputFiles[i])
@@ -230,7 +230,7 @@ func compile(cmds string, lCmd *LangCmd, tmpDir string) error {
 
 	cmd := exec.Command(compileCom[0], compileCom[1:]...)
 	cmd.Dir = tmpDir
-	cmd.Stdin, cmd.Stdout, cmd.Stderr = os.Stdin, os.Stdout, os.Stderr
+	cmd.Stdin, cmd.Stdout, cmd.Stderr = os.Stdin, ioutil.Discard, ioutil.Discard
 	if err := cmd.Run(); err != nil {
 		return fmt.Errorf("%s: %s", CE, lCmd.File)
 	}
