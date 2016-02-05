@@ -90,3 +90,21 @@ func TestGetCommandWrongCookie(t *testing.T) {
 		t.Errorf("bad status code = %v; want %v\nError message = %s; want %s", code, ExitCodeFailed, errs, result)
 	}
 }
+
+func TestGetCommandWrongProblem(t *testing.T) {
+	ui := new(cli.MockUi)
+	c := &GetCommand{
+		Meta: Meta{
+			UI: ui,
+		},
+	}
+
+	result := "the problem does not exist"
+	args := []string{"99999"}
+	code := c.Run(args)
+	errs := ui.ErrorWriter.String()
+
+	if code != ExitCodeFailed || !strings.Contains(errs, result) {
+		t.Errorf("bad status code = %v; want %v\nError message = %s; want %s", code, ExitCodeFailed, errs, result)
+	}
+}
