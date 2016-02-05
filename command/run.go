@@ -187,7 +187,7 @@ func (c *RunCommand) Run(args []string) int {
 			var buf bytes.Buffer
 			cmd.Stdin, cmd.Stdout, cmd.Stderr = input, &buf, ioutil.Discard
 			if verboseFlag {
-				cmd.Stdout, cmd.Stderr = os.Stdout, os.Stderr
+				cmd.Stderr = os.Stderr
 			}
 
 			result := judge(cmd, output, v, &info)
