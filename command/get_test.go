@@ -80,7 +80,7 @@ func TestGetCommandFlag(t *testing.T) {
 		code   int
 		result string
 	}{
-		{args: []string{"-l", "lang", "-hoge"}, code: ExitCodeFailed, result: "Invalid option:"},
+		{args: []string{"-l", "lang", "-hoge"}, code: ExitCodeFailed, result: "Invalid option"},
 		{args: []string{}, code: ExitCodeFailed, result: "Invalid arguments"},
 		{args: []string{"foobar"}, code: ExitCodeFailed, result: "invalid syntax"},
 	}

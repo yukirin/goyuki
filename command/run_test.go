@@ -17,10 +17,10 @@ func TestRunCommandFlag(t *testing.T) {
 		code   int
 		result string
 	}{
-		{args: []string{"-foo", "lang", "-hoge"}, code: ExitCodeFailed, result: "Invalid option:"},
+		{args: []string{"-foo", "lang", "-hoge"}, code: ExitCodeFailed, result: "Invalid option"},
 		{args: []string{}, code: ExitCodeFailed, result: "Invalid arguments"},
 		{args: []string{"-l", "lang", "testdata/337", "foo.go"}, code: ExitCodeFailed, result: "Invalid language"},
-		{args: []string{"-V", "hoge", "testdata/337", "foo.go"}, code: ExitCodeFailed, result: "Invalid Validater"},
+		{args: []string{"-V", "hoge", "testdata/337", "foo.go"}, code: ExitCodeFailed, result: "Invalid validater"},
 	}
 
 	for _, testCase := range testCases {

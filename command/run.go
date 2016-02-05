@@ -77,7 +77,7 @@ func (c *RunCommand) Run(args []string) int {
 	}
 	v, ok := Validaters[validaterFlag]
 	if !ok {
-		msg := fmt.Sprintf("Invalid Validater: %s", validaterFlag)
+		msg := fmt.Sprintf("Invalid validater: %s", validaterFlag)
 		c.UI.Error(msg)
 		return ExitCodeFailed
 	}
