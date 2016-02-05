@@ -11,7 +11,7 @@ func TestGetCommand_implement(t *testing.T) {
 	var _ cli.Command = &GetCommand{}
 }
 
-func TestGetCommandEnvUnSet(t *testing.T) {
+func TestGetCommandUnSetEnv(t *testing.T) {
 	ui := new(cli.MockUi)
 	c := &GetCommand{
 		Meta: Meta{
