@@ -3,6 +3,7 @@ package command
 import (
 	"io/ioutil"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/mitchellh/cli"
@@ -45,5 +46,26 @@ func TestGetCommand(t *testing.T) {
 
 	if !equalFiles(prev+"/testdata/337", tmpDir+"/337") {
 		t.Errorf("failed download testcase; problem no %s\n", args[0])
+	}
+}
+
+func TestGetCommandEnvUnSet(t *testing.T) {
+	ui := new(cli.MockUi)
+	c := &GetCommand{
+		Meta: Meta{
+			UI: ui,
+		},
+	}
+
+	clearFunc := setEnv("GOYUKI", "")
+	defer clearFunc()
+
+	result := "$GOYUKI not set"
+	args := []string{"337"}
+	code := c.Run(args)
+	errs := ui.ErrorWriter.String()
+
+	if code != ExitCodeFailed || !strings.Contains(errs, result) {
+		t.Errorf("bad status code = %v; want %v\nError message = %s; want %s", code, ExitCodeFailed, errs, result)
 	}
 }
