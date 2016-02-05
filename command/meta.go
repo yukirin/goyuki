@@ -2,12 +2,9 @@ package command
 
 import (
 	"bufio"
-	"crypto/rand"
-	"encoding/base32"
 	"flag"
 	"fmt"
 	"io"
-	"os"
 	"strings"
 	"time"
 )
@@ -114,32 +111,4 @@ func (m *Meta) NewFlagSet(name string, helpText string) *flag.FlagSet {
 	}()
 
 	return flags
-}
-
-// TmpFile create random file name
-func TmpFile() (string, error) {
-	b := make([]byte, 25)
-	_, err := io.ReadFull(rand.Reader, b)
-	if err != nil {
-		return "", err
-	}
-
-	return strings.TrimRight(base32.StdEncoding.EncodeToString(b), "="), nil
-}
-
-// MkTmpDir make tmp directory
-func MkTmpDir() (string, error) {
-	tmpDir := os.TempDir()
-	dir, err := TmpFile()
-	if err != nil {
-		return "", err
-	}
-	tmpDir += "/" + dir
-
-	err = os.Mkdir(tmpDir, DPerm)
-	if err != nil {
-		return "", err
-	}
-
-	return tmpDir, nil
 }

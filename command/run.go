@@ -50,9 +50,9 @@ func (c *RunCommand) Run(args []string) int {
 		return ExitCodeFailed
 	}
 
-	tmpDir, err := MkTmpDir()
+	tmpDir, err := ioutil.TempDir("", "goyuki")
 	if err != nil {
-		c.UI.Error(fmt.Sprint(err))
+		c.UI.Error(fmt.Sprintf("can't create directory: %v", err))
 		return ExitCodeFailed
 	}
 	defer os.RemoveAll(tmpDir)
