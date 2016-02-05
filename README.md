@@ -23,8 +23,8 @@ $ goyuki run problem_no source_file
 ```
 #### オプション
 ```bash
--language, -l       実行する言語を指定します (デフォルト 拡張子から判別)
--validater, -V       テストの一致方法を指定します (デフォルト diff validator)
+-language=lang, -l       実行する言語を指定します (デフォルト 拡張子から判別)
+-validater=validater, -V       テストの一致方法を指定します (デフォルト diff validator)
 -verbose, -vb		コンパイル時、実行時の標準出力、標準エラー出力を表示する
 ```
 ##### 例(pypy2でコンパイル、実行し、dif validaterを使用する場合)
