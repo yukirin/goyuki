@@ -108,3 +108,31 @@ func TestGetCommandWrongProblem(t *testing.T) {
 		t.Errorf("bad status code = %v; want %v\nError message = %s; want %s", code, ExitCodeFailed, errs, result)
 	}
 }
+
+func TestGetCommandFlag(t *testing.T) {
+	testCases := []struct {
+		args   []string
+		code   int
+		result string
+	}{
+		{args: []string{"-l", "lang", "-hoge"}, code: ExitCodeFailed, result: "Invalid option:"},
+		{args: []string{}, code: ExitCodeFailed, result: "Invalid arguments"},
+		{args: []string{"foobar"}, code: ExitCodeFailed, result: "invalid syntax"},
+	}
+
+	for _, testCase := range testCases {
+		ui := new(cli.MockUi)
+		c := &GetCommand{
+			Meta: Meta{
+				UI: ui,
+			},
+		}
+
+		code := c.Run(testCase.args)
+		errs := ui.ErrorWriter.String()
+
+		if code != testCase.code || !strings.Contains(errs, testCase.result) {
+			t.Errorf("bad status code = %v; want %v\nError message = %s; want %s", code, testCase.code, errs, testCase.result)
+		}
+	}
+}
