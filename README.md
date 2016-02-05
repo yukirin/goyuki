@@ -50,7 +50,7 @@ $ goyuki get 1
 ```
 
 <br />
-### 対応ファイル形式(-language オプション名)
+### 対応言語(-language オプション名)
 * C++11 (cpp)
 * C (c)
 * Java (java)
@@ -79,6 +79,7 @@ $ goyuki get 1
 ```bash
 $ go get -d github.com/yukirin/goyuki
 ```
+または [Releases yukirin/goyuki Github](https://github.com/yukirin/goyuki/releases)からバイナリをダウンロード
 
 ## Contribution
 
