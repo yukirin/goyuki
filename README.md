@@ -34,7 +34,7 @@ $ goyuki run -l pypy2 -V diff 314 sample.py
 
 #### Validater(-validater オプション名)
 ##### diff Validater(diff)
-テストファイルと実行ファイルの出力が完全一致しているか確認する
+テストファイルと実行ファイルが行単位で一致しているか確認する
 
 
 <br />
