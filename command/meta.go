@@ -53,7 +53,7 @@ const (
 // InfoFile is yukicoder problem infomation file
 const InfoFile = "info.json"
 
-// Dir of File permittion
+// Dir and File permittion
 const (
 	DPerm = 0755
 	FPerm = 0644
