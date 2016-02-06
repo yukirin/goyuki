@@ -69,5 +69,6 @@ func (f *FloatValidater) Validate(actual, expected []byte) bool {
 
 // Validaters is map of available validater
 var Validaters = map[string]Validater{
-	"diff": &DiffValidater{},
+	"diff":  &DiffValidater{},
+	"float": &FloatValidater{},
 }
