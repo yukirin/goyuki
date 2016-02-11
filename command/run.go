@@ -130,7 +130,7 @@ func (c *RunCommand) Run(args []string) int {
 	}
 
 	if langFlag == "java" || langFlag == "scala" {
-		class, err := classFile(tmpDir)
+		class, err := classFile(tmpDir, source, langFlag)
 		lCmd.Class = class
 
 		if err != nil {
@@ -274,19 +274,30 @@ func judge(cmd *exec.Cmd, expected []byte, v Validater, i *Info) string {
 	}
 }
 
-func classFile(dir string) (string, error) {
-	files, err := filepath.Glob(dir + "/*")
-	if err != nil {
-		return "", err
+func classFile(dir, source, langFlag string) (string, error) {
+	class := ""
+
+	suffix := strings.Split(source, ".")[0] + ".class"
+	if langFlag == "scala" {
+		suffix = "$.class"
 	}
-	for _, s := range files {
-		if strings.HasSuffix(s, "$.class") {
-			continue
+
+	err := filepath.Walk(dir, func(p string, info os.FileInfo, err error) error {
+		class = strings.TrimSuffix(p, suffix)
+		if len(p) != len(class) {
+			if langFlag == "java" {
+				class += strings.Split(source, ".")[0]
+			}
+
+			class = strings.Replace(class, dir+"/", "", -1)
+			class = strings.Replace(class, "/", ".", -1)
+			return fmt.Errorf("found class")
 		}
-		if strings.HasSuffix(s, ".class") {
-			_, f := path.Split(s)
-			return strings.TrimSuffix(f, ".class"), nil
-		}
+		return err
+	})
+
+	if err.Error() != "found class" {
+		return "", fmt.Errorf("missing .class file")
 	}
-	return "", fmt.Errorf("missing .class file")
+	return class, nil
 }
