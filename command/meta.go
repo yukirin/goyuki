@@ -81,6 +81,14 @@ var Lang = map[string][]string{
 	"sh":    {"echo", "sh {{.File}}", "Bash"},
 	"txt":   {"echo", "cat {{.File}}", "Text"},
 	"ml":    {"ocamlc str.cma {{.File}} -o a.out", "./a.out", "OCaml"},
+	"cs":    {"dmcs -warn:0 /r:System.Numerics.dll /codepage:utf8 {{.File}} -out:a.exe", "mono a.exe", "C#"},
+	"d":     {"dmd -m64 -w -wi -O -release -inline -I/usr/include/dmd/druntime/import/ -I/usr/include/dmd/phobos -ofa.out {{.File}}", "./a.out", "D"},
+	"nim":   {"nim --hints:off -o:a.out -d:release c {{.File}}", "./a.out", "Nim"},
+	"kt":    {"kotlinc {{.File}} -include-runtime -d main.jar", "java -jar main.jar", "Kotlin"},
+	"cr":    {"crystal build -o a.out --release {{.File}}", "./a.out", "Crystal"},
+	"fs":    {"fsharpc {{.File}} -o ./a.exe", "./a.exe", "F#"},
+	"f90":   {"gfortran {{.File}} -o ./a.out", "./a.out", "Fortran"},
+	"ws":    {"echo", "wspace {{.File}}", "Whitespace"},
 }
 
 // yukicoder Judge Code

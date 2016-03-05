@@ -73,6 +73,14 @@ $ goyuki get 1
 * JavaScript (js)
 * Bash (sh)
 * Text (txt)
+* C# (cs)
+* D (d)
+* Nim (nim)
+* Kotlin (kt)
+* Crystal (cr)
+* F# (fs)
+* Fortran (f90)
+* Whitespace (ws)
 
 ## Install
 
