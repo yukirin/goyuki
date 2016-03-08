@@ -35,14 +35,22 @@ type Result struct {
 }
 
 func (r *Result) String() string {
-	strs := make([]string, 5)
+	strs := make([]string, 6)
 	strs[0] = fmt.Sprintf("\n問題:\t\t%s", r.info.Name)
 	strs[1] = fmt.Sprintf("テスト日時:\t%s", r.date.Format(time.RFC1123))
 	strs[2] = fmt.Sprintf("言語:\t\t%s", r.lang)
-	strs[3] = fmt.Sprintf("コンパイル時間\t%d ms", r.compileTime.Nanoseconds()/1000000)
-	strs[4] = fmt.Sprintf("コード長\t%d byte\n", r.codeLength)
+	strs[3] = fmt.Sprintf("コンパイル時間:\t%d ms", r.compileTime.Nanoseconds()/1000000)
+	strs[4] = fmt.Sprintf("コード長:\t%d byte\n", r.codeLength)
+	s := "Normal"
+	if r.info.Reactive {
+		s = "Reactive"
+	}
+	strs[5] = fmt.Sprintf("ジャッジタイプ:\t%s", s)
 	return strings.Join(strs, "\n")
 }
+
+// BaseURL is yukicoder problem url
+const BaseURL = "http://yukicoder.me/problems"
 
 // ExitCodes
 const (
@@ -52,6 +60,9 @@ const (
 
 // InfoFile is yukicoder problem infomation file
 const InfoFile = "info.json"
+
+// ReactiveCode is reactive judge code file
+const ReactiveCode = "reactive"
 
 // Dir and File permittion
 const (
@@ -119,4 +130,15 @@ func (m *Meta) NewFlagSet(name string, helpText string) *flag.FlagSet {
 	}()
 
 	return flags
+}
+
+// Ext to get an extension from the language
+func Ext(lang string) string {
+	for k, v := range Lang {
+		if lang != v[2] {
+			continue
+		}
+		return "." + k
+	}
+	return ""
 }

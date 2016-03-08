@@ -25,11 +25,13 @@ type GetCommand struct {
 
 // Info is problem info
 type Info struct {
-	No    string
-	Name  string
-	Level int
-	Time  int
-	Mem   int
+	No       string
+	Name     string
+	Level    int
+	Time     int
+	Mem      int
+	Reactive bool
+	RLang    string
 }
 
 // Run get test case
@@ -72,7 +74,13 @@ func (c *GetCommand) Run(args []string) int {
 		return ExitCodeFailed
 	}
 
-	if err := save(b, i, num); err != nil {
+	rBuf, err := reactive(i, cookie)
+	if err != nil {
+		c.UI.Error(fmt.Sprint(err))
+		return ExitCodeFailed
+	}
+
+	if err := save(b, rBuf, i, num); err != nil {
 		c.UI.Error(fmt.Sprint(err))
 		return ExitCodeFailed
 	}
@@ -100,8 +108,7 @@ Usage:
 }
 
 func download(num int, cookie string) ([]byte, *Info, error) {
-	const baseURL = "http://yukicoder.me/problems"
-	uri := strings.Join([]string{baseURL, "no", fmt.Sprint(num)}, "/")
+	uri := strings.Join([]string{BaseURL, "no", fmt.Sprint(num)}, "/")
 
 	res, err := goreq.Request{
 		Uri:          uri,
@@ -122,7 +129,7 @@ func download(num int, cookie string) ([]byte, *Info, error) {
 		return nil, nil, err
 	}
 
-	testCaseURI := strings.Join([]string{baseURL, i.No, "testcase.zip"}, "/")
+	testCaseURI := strings.Join([]string{BaseURL, i.No, "testcase.zip"}, "/")
 	session := &http.Cookie{
 		Name:     "REVEL_SESSION",
 		Value:    cookie,
@@ -149,7 +156,7 @@ func download(num int, cookie string) ([]byte, *Info, error) {
 	return buf.Bytes(), i, nil
 }
 
-func save(buf []byte, i *Info, num int) error {
+func save(buf, rbuf []byte, i *Info, num int) error {
 	baseDir := fmt.Sprint(num)
 	if err := os.Mkdir(baseDir, DPerm); err != nil {
 		return err
@@ -163,6 +170,13 @@ func save(buf []byte, i *Info, num int) error {
 	infoName := strings.Join([]string{baseDir, InfoFile}, "/")
 	if err := ioutil.WriteFile(infoName, b, FPerm); err != nil {
 		return err
+	}
+
+	if i.Reactive {
+		codeName := strings.Join([]string{baseDir, ReactiveCode + Ext(i.RLang)}, "/")
+		if err := ioutil.WriteFile(codeName, rbuf, FPerm); err != nil {
+			return err
+		}
 	}
 
 	zr, err := zip.NewReader(bytes.NewReader(buf), int64(len(buf)))
@@ -234,4 +248,44 @@ func parse(r io.Reader) (*Info, error) {
 	i.Time, i.Mem = tm[0], tm[1]
 
 	return i, nil
+}
+
+func reactive(i *Info, cookie string) ([]byte, error) {
+	uri := strings.Join([]string{BaseURL, i.No, "code"}, "/")
+	session := &http.Cookie{
+		Name:     "REVEL_SESSION",
+		Value:    cookie,
+		Path:     "/",
+		HttpOnly: true,
+	}
+
+	res, err := goreq.Request{
+		Uri:          uri,
+		MaxRedirects: 1,
+	}.WithCookie(session).Do()
+	if err != nil {
+		return nil, fmt.Errorf("failed problem request: %v", err)
+	}
+	defer res.Body.Close()
+
+	doc, err := goquery.NewDocumentFromReader(res.Body)
+	if err != nil {
+		return nil, fmt.Errorf("judge code parse error: %v", err)
+	}
+
+	doc.Find("option").EachWithBreak(func(n int, e *goquery.Selection) bool {
+		if _, ok := e.Attr("selected"); !ok {
+			return true
+		}
+		lang := e.Text()
+		i.RLang = lang[:strings.Index(lang, " ")]
+		i.Reactive = true
+		return false
+	})
+
+	buf := bytes.NewBuffer(make([]byte, 0, 1000000))
+	if _, err := buf.WriteString(doc.Find("textarea").Text()); err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
 }
