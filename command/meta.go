@@ -70,7 +70,7 @@ var Lang = map[string][]string{
 	"pypy2": {"pypy -m py_compile {{.File}}", "pypy {{.File}}", "PyPy2"},
 	"pypy3": {"pypy3 -mpy_compile {{.File}}", "pypy3 {{.File}}", "PyPy3"},
 	"js":    {"echo", "node {{.File}}", "JavaScript"},
-	"java":  {"javac -d ./ -encoding UTF8 {{.File}}", "java -ea -Xmx700m -Xverify:none -XX:+TieredCompilation -XX:TieredStopAtLevel=1 {{.Class}}", "Java"},
+	"java":  {"javac -d ./ -encoding UTF8 {{.File}}", "java -ea -Xmx700m -Xverify:none -XX:+TieredCompilation -XX:TieredStopAtLevel=1 {{.Class}}", "Java8"},
 	"pl":    {"perl -cw {{.File}}", "perl -X {{.File}}", "Perl"},
 	"pl6":   {"perl6 -cw {{.File}}", "perl6 {{.File}}", "Perl6"},
 	"php":   {"php -l {{.File}}", "php {{.File}}", "PHP"},
