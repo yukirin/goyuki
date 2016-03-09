@@ -118,7 +118,7 @@ func (c *RunCommand) Run(args []string) int {
 
 	var rCode *Code
 	var clearFunc func()
-	if info.Reactive {
+	if info.JudgeType > 0 {
 		rCode, clearFunc, err = reactiveCode(&info, args[0], stdout, stderr)
 		if err != nil {
 			c.UI.Error(err.Error())
@@ -192,7 +192,7 @@ func (c *RunCommand) Run(args []string) int {
 			}
 
 			var result string
-			if info.Reactive {
+			if info.JudgeType > 0 {
 				result, err = rCode.Reactive(&code, inputFiles[i], outputFiles[i], input, stdout, stderr)
 			} else {
 				var buf bytes.Buffer

@@ -161,7 +161,7 @@ func save(buf, rbuf []byte, i *Info, num int) error {
 		return err
 	}
 
-	if i.Reactive {
+	if i.JudgeType > 0 {
 		codeName := strings.Join([]string{baseDir, ReactiveCode + Ext(i.RLang)}, "/")
 		if err := ioutil.WriteFile(codeName, rbuf, FPerm); err != nil {
 			return err
@@ -222,7 +222,7 @@ func parse(r io.Reader) (*Info, error) {
 	i.Name = content.Find("h3").Text()
 	i.Level = p.First().Find("i.fa-star").Size()
 	if strings.Contains(content.Text(), "スペシャル") {
-		i.Judge = Special
+		i.JudgeType = Special
 	}
 	infoData := p.First().Text()
 
@@ -265,22 +265,23 @@ func reactive(i *Info, cookie string) ([]byte, error) {
 		return nil, fmt.Errorf("judge code parse error: %v", err)
 	}
 
+	isReactive := false
 	doc.Find("option").EachWithBreak(func(n int, e *goquery.Selection) bool {
 		if _, ok := e.Attr("selected"); !ok {
 			return true
 		}
 		lang := e.Text()
 		i.RLang = lang[:strings.Index(lang, " ")]
-		i.Reactive = true
+		isReactive = true
 		return false
 	})
 
-	if i.Reactive {
-		if i.Judge != Special {
-			i.Judge = Reactive
+	if isReactive {
+		if i.JudgeType != Special {
+			i.JudgeType = Reactive
 		}
 	} else {
-		i.Judge = Normal
+		i.JudgeType = Normal
 	}
 
 	buf := bytes.NewBuffer(make([]byte, 0, 1000000))

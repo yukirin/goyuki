@@ -19,14 +19,13 @@ type Meta struct {
 
 // Info is problem info
 type Info struct {
-	No       string
-	Name     string
-	Level    int
-	Time     int
-	Mem      int
-	Reactive bool
-	RLang    string
-	Judge    int
+	No        string
+	Name      string
+	Level     int
+	Time      int
+	Mem       int
+	RLang     string
+	JudgeType int
 }
 
 // LangCmd is struct to fill Lang template
@@ -47,7 +46,7 @@ type Result struct {
 
 func (r *Result) String() string {
 	s := ""
-	switch r.info.Judge {
+	switch r.info.JudgeType {
 	case Normal:
 		s = "Normal"
 	case Special:

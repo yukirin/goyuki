@@ -101,7 +101,7 @@ func (c *Code) Reactive(code *Code, inFile, outFile string, r io.Reader, w, e io
 		return "", err
 	}
 
-	if c.Info.Judge == Reactive {
+	if c.Info.JudgeType == Reactive {
 		cmd.Stdin, err = rCmd.StdoutPipe()
 		if err != nil {
 			return "", err
