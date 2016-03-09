@@ -94,8 +94,7 @@ func (c *RunCommand) Run(args []string) int {
 		return ExitCodeFailed
 	}
 
-	err = ioutil.WriteFile(tmpDir+"/"+source, b, FPerm)
-	if err != nil {
+	if err := ioutil.WriteFile(tmpDir+"/"+source, b, FPerm); err != nil {
 		c.UI.Error(err.Error())
 		return ExitCodeFailed
 	}
@@ -263,8 +262,7 @@ func reactiveCode(info *Info, no string, w, e io.Writer) (*Code, func(), error) 
 		source = renameJava(b) + ext
 		lCmd.File = source
 	}
-	err = ioutil.WriteFile(rTmpDir+"/"+source, b, FPerm)
-	if err != nil {
+	if err := ioutil.WriteFile(rTmpDir+"/"+source, b, FPerm); err != nil {
 		return nil, nil, err
 	}
 
@@ -279,9 +277,7 @@ func reactiveCode(info *Info, no string, w, e io.Writer) (*Code, func(), error) 
 		return nil, nil, fmt.Errorf("reactive code compile error")
 	}
 	if ext[1:] == "java" || ext[1:] == "scala" {
-		class, err := classFile(rTmpDir, source, ext[1:])
-		lCmd.Class = class
-
+		lCmd.Class, err = classFile(rTmpDir, source, ext[1:])
 		if err != nil {
 			return nil, nil, err
 		}
