@@ -122,7 +122,6 @@ var Lang = map[string][]string{
 	"cr":    {"crystal build -o a.out --release {{.File}}", "./a.out", "Crystal"},
 	"fs":    {"fsharpc {{.File}} -o ./a.exe", "./a.exe", "F#"},
 	"f90":   {"gfortran {{.File}} -o ./a.out", "./a.out", "Fortran"},
-	"ws":    {"echo", "wspace {{.File}}", "Whitespace"},
 }
 
 // yukicoder Judge Code

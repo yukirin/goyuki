@@ -1,5 +1,5 @@
 # goyuki
-yukicoderのテストケースをダウンロードしローカルでテストを実行するツール
+yukicoderのテストケースをダウンロードしローカルでテストを実行するツール(リアクティブジャッジ、スペシャルジャッジ対応)
 
 
 ## Usage
@@ -33,6 +33,7 @@ $ goyuki run -l pypy2 -V diff 314 sample.py
 ```
 
 #### Validater(-validater オプション名)
+リアクティブジャッジ、スペシャルジャッジの場合は無視されます
 ##### diff Validater(diff)
 テストファイルと実行ファイルの出力が行単位で一致しているか確認する
 ##### float Validater(float)
@@ -80,7 +81,6 @@ $ goyuki get 1
 * Crystal (cr)
 * F# (fs)
 * Fortran (f90)
-* Whitespace (ws)
 
 ## Install
 
