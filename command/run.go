@@ -9,6 +9,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"time"
 )
@@ -246,15 +247,8 @@ func reactiveCode(info *Info, no string, w, e io.Writer) (*Code, func(), error) 
 		os.RemoveAll(rTmpDir)
 	}
 
-	var lang []string
-	var ext string
-	for k, v := range Lang {
-		if v[2] == info.RLang {
-			ext, lang = k, v
-			break
-		}
-	}
-	source := ReactiveCode + "." + ext
+	ext := Ext(info.RLang)
+	lang, source := Lang[ext[1:]], ReactiveCode+ext
 	lCmd := LangCmd{
 		File: source,
 		Exec: strings.Split(source, ".")[0],
@@ -265,6 +259,10 @@ func reactiveCode(info *Info, no string, w, e io.Writer) (*Code, func(), error) 
 		return nil, nil, fmt.Errorf("failed to read reactive file: %v", err)
 	}
 
+	if ext[1:] == "java" {
+		source = renameJava(b) + ext
+		lCmd.File = source
+	}
 	err = ioutil.WriteFile(rTmpDir+"/"+source, b, FPerm)
 	if err != nil {
 		return nil, nil, err
@@ -279,6 +277,14 @@ func reactiveCode(info *Info, no string, w, e io.Writer) (*Code, func(), error) 
 
 	if err := rCode.Compile(os.Stdin, w, e); err != nil {
 		return nil, nil, fmt.Errorf("reactive code compile error")
+	}
+	if ext[1:] == "java" || ext[1:] == "scala" {
+		class, err := classFile(rTmpDir, source, ext[1:])
+		lCmd.Class = class
+
+		if err != nil {
+			return nil, nil, err
+		}
 	}
 	return rCode, clearFunc, nil
 }
@@ -309,4 +315,9 @@ func classFile(dir, source, langFlag string) (string, error) {
 		return "", fmt.Errorf("missing .class file")
 	}
 	return class, nil
+}
+
+func renameJava(buf []byte) string {
+	r := regexp.MustCompile(`class ([^ ]+)`)
+	return string(r.Find(buf)[6:])
 }
