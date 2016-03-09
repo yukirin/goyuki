@@ -7,8 +7,7 @@ import (
 	"io"
 	"strings"
 	"time"
-)
-import (
+
 	"github.com/mgutz/ansi"
 	"github.com/mitchellh/cli"
 )
@@ -16,6 +15,18 @@ import (
 // Meta contain the meta-option that nearly all subcommand inherited.
 type Meta struct {
 	UI cli.Ui
+}
+
+// Info is problem info
+type Info struct {
+	No       string
+	Name     string
+	Level    int
+	Time     int
+	Mem      int
+	Reactive bool
+	RLang    string
+	Judge    int
 }
 
 // LangCmd is struct to fill Lang template
@@ -35,17 +46,22 @@ type Result struct {
 }
 
 func (r *Result) String() string {
+	s := ""
+	switch r.info.Judge {
+	case Normal:
+		s = "Normal"
+	case Special:
+		s = "Special"
+	case Reactive:
+		s = "Reactive"
+	}
 	strs := make([]string, 6)
 	strs[0] = fmt.Sprintf("\n問題:\t\t%s", r.info.Name)
 	strs[1] = fmt.Sprintf("テスト日時:\t%s", r.date.Format(time.RFC1123))
 	strs[2] = fmt.Sprintf("言語:\t\t%s", r.lang)
 	strs[3] = fmt.Sprintf("コンパイル時間:\t%d ms", r.compileTime.Nanoseconds()/1000000)
-	strs[4] = fmt.Sprintf("コード長:\t%d byte\n", r.codeLength)
-	s := "Normal"
-	if r.info.Reactive {
-		s = "Reactive"
-	}
-	strs[5] = fmt.Sprintf("ジャッジタイプ:\t%s", s)
+	strs[4] = fmt.Sprintf("コード長:\t%d byte", r.codeLength)
+	strs[5] = fmt.Sprintf("ジャッジタイプ:\t%s\n", s)
 	return strings.Join(strs, "\n")
 }
 
@@ -56,6 +72,13 @@ const BaseURL = "http://yukicoder.me/problems"
 const (
 	ExitCodeOK = iota
 	ExitCodeFailed
+)
+
+// Judge Type
+const (
+	Normal = iota
+	Special
+	Reactive
 )
 
 // InfoFile is yukicoder problem infomation file

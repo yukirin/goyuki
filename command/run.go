@@ -4,13 +4,12 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"os"
-	"os/exec"
 	"path"
 	"path/filepath"
 	"strings"
-	"text/template"
 	"time"
 )
 
@@ -96,7 +95,7 @@ func (c *RunCommand) Run(args []string) int {
 
 	err = ioutil.WriteFile(tmpDir+"/"+source, b, FPerm)
 	if err != nil {
-		c.UI.Error(fmt.Sprint(err))
+		c.UI.Error(err.Error())
 		return ExitCodeFailed
 	}
 
@@ -108,8 +107,24 @@ func (c *RunCommand) Run(args []string) int {
 
 	info := Info{}
 	if err := json.Unmarshal(infoBuf, &info); err != nil {
-		c.UI.Error(fmt.Sprint(err))
+		c.UI.Error(err.Error())
 		return ExitCodeFailed
+	}
+
+	stdout, stderr := ioutil.Discard, ioutil.Discard
+	if verboseFlag {
+		stdout, stderr = os.Stdout, os.Stderr
+	}
+
+	var rCode *Code
+	var clearFunc func()
+	if info.Reactive {
+		rCode, clearFunc, err = reactiveCode(&info, args[0], stdout, stderr)
+		if err != nil {
+			c.UI.Error(err.Error())
+			return ExitCodeFailed
+		}
+		defer clearFunc()
 	}
 
 	result := Result{
@@ -119,13 +134,19 @@ func (c *RunCommand) Run(args []string) int {
 		codeLength: len(b),
 	}
 
-	sTime := time.Now()
-	err = compile(lang[0], &lCmd, tmpDir, verboseFlag)
-	result.compileTime = time.Now().Sub(sTime)
+	code := Code{
+		LangCmd: &lCmd,
+		Lang:    lang,
+		Info:    &info,
+		Dir:     tmpDir,
+	}
 
+	sTime := time.Now()
+	err = code.Compile(os.Stdin, stdout, stderr)
+	result.compileTime = time.Now().Sub(sTime)
 	c.UI.Output(result.String())
 	if err != nil {
-		c.UI.Output(fmt.Sprint(err))
+		c.UI.Output(err.Error())
 		return ExitCodeFailed
 	}
 
@@ -134,7 +155,7 @@ func (c *RunCommand) Run(args []string) int {
 		lCmd.Class = class
 
 		if err != nil {
-			c.UI.Error(fmt.Sprint(err))
+			c.UI.Error(err.Error())
 			return ExitCodeFailed
 		}
 	}
@@ -153,22 +174,8 @@ func (c *RunCommand) Run(args []string) int {
 		return ExitCodeFailed
 	}
 
-	var execBuf bytes.Buffer
-
-	t := template.Must(template.New("exec").Parse(lang[1]))
-	if err := t.Execute(&execBuf, lCmd); err != nil {
-		msg := fmt.Sprintf("executing template: %v", err)
-		c.UI.Error(msg)
-		return ExitCodeFailed
-	}
-
-	execCom := strings.Split(execBuf.String(), " ")
-
 	for i := 0; i < len(inputFiles); i++ {
 		err := func() error {
-			cmd := exec.Command(execCom[0], execCom[1:]...)
-			cmd.Dir = tmpDir
-
 			input, err := os.Open(inputFiles[i])
 			if err != nil {
 				msg := fmt.Sprintf("input test file error: %v", err)
@@ -184,13 +191,18 @@ func (c *RunCommand) Run(args []string) int {
 				return err
 			}
 
-			var buf bytes.Buffer
-			cmd.Stdin, cmd.Stdout, cmd.Stderr = input, &buf, ioutil.Discard
-			if verboseFlag {
-				cmd.Stderr = os.Stderr
+			var result string
+			if info.Reactive {
+				result, err = rCode.Reactive(&code, inputFiles[i], outputFiles[i], input, stdout, stderr)
+			} else {
+				var buf bytes.Buffer
+				result, err = code.Run(v, output, input, &buf, stderr)
+			}
+			if err != nil {
+				c.UI.Error(err.Error())
+				return err
 			}
 
-			result := judge(cmd, output, v, &info)
 			_, testFile := path.Split(inputFiles[i])
 			c.UI.Output(fmt.Sprintf("%s\t%s", result, testFile))
 			return nil
@@ -225,53 +237,50 @@ Options:
 	return strings.TrimSpace(helpText)
 }
 
-func compile(cmds string, lCmd *LangCmd, tmpDir string, vb bool) error {
-	var b bytes.Buffer
-
-	t := template.Must(template.New("compile").Parse(cmds))
-	if err := t.Execute(&b, lCmd); err != nil {
-		return fmt.Errorf("executing template: %v", err)
+func reactiveCode(info *Info, no string, w, e io.Writer) (*Code, func(), error) {
+	rTmpDir, err := ioutil.TempDir("", "goyuki")
+	if err != nil {
+		return nil, nil, fmt.Errorf("can't create directory: %v", err)
+	}
+	clearFunc := func() {
+		os.RemoveAll(rTmpDir)
 	}
 
-	compileCom := strings.Split(b.String(), " ")
-
-	cmd := exec.Command(compileCom[0], compileCom[1:]...)
-	cmd.Dir = tmpDir
-	cmd.Stdin, cmd.Stdout, cmd.Stderr = os.Stdin, ioutil.Discard, ioutil.Discard
-	if vb {
-		cmd.Stdout, cmd.Stderr = os.Stdout, os.Stderr
-	}
-
-	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("%s: %s", CE, lCmd.File)
-	}
-	return nil
-}
-
-func judge(cmd *exec.Cmd, expected []byte, v Validater, i *Info) string {
-	ch := make(chan error)
-	sTime := time.Now()
-
-	go func() {
-		ch <- cmd.Run()
-	}()
-
-	select {
-	case err := <-ch:
-		t := time.Now().Sub(sTime).Nanoseconds() / 1000000
-
-		if err != nil {
-			return RE
+	var lang []string
+	var ext string
+	for k, v := range Lang {
+		if v[2] == info.RLang {
+			ext, lang = k, v
+			break
 		}
-
-		if !v.Validate(cmd.Stdout.(*bytes.Buffer).Bytes(), expected) {
-			return fmt.Sprintf("%s: %d ms", WA, t)
-		}
-
-		return fmt.Sprintf("%s: %d ms", AC, t)
-	case <-time.After(time.Duration(i.Time) * time.Second):
-		return TLE
 	}
+	source := ReactiveCode + "." + ext
+	lCmd := LangCmd{
+		File: source,
+		Exec: strings.Split(source, ".")[0],
+	}
+
+	b, err := ioutil.ReadFile(no + "/" + source)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to read reactive file: %v", err)
+	}
+
+	err = ioutil.WriteFile(rTmpDir+"/"+source, b, FPerm)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	rCode := &Code{
+		LangCmd: &lCmd,
+		Lang:    lang,
+		Info:    info,
+		Dir:     rTmpDir,
+	}
+
+	if err := rCode.Compile(os.Stdin, w, e); err != nil {
+		return nil, nil, fmt.Errorf("reactive code compile error")
+	}
+	return rCode, clearFunc, nil
 }
 
 func classFile(dir, source, langFlag string) (string, error) {

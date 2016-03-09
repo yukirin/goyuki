@@ -23,17 +23,6 @@ type GetCommand struct {
 	Meta
 }
 
-// Info is problem info
-type Info struct {
-	No       string
-	Name     string
-	Level    int
-	Time     int
-	Mem      int
-	Reactive bool
-	RLang    string
-}
-
 // Run get test case
 func (c *GetCommand) Run(args []string) int {
 	flags := c.Meta.NewFlagSet("get", c.Help())
@@ -59,7 +48,7 @@ func (c *GetCommand) Run(args []string) int {
 
 	num, err := strconv.Atoi(args[0])
 	if err != nil {
-		c.UI.Error(fmt.Sprint(err))
+		c.UI.Error(err.Error())
 		return ExitCodeFailed
 	}
 
@@ -70,18 +59,18 @@ func (c *GetCommand) Run(args []string) int {
 
 	b, i, err := download(num, cookie)
 	if err != nil {
-		c.UI.Error(fmt.Sprint(err))
+		c.UI.Error(err.Error())
 		return ExitCodeFailed
 	}
 
 	rBuf, err := reactive(i, cookie)
 	if err != nil {
-		c.UI.Error(fmt.Sprint(err))
+		c.UI.Error(err.Error())
 		return ExitCodeFailed
 	}
 
 	if err := save(b, rBuf, i, num); err != nil {
-		c.UI.Error(fmt.Sprint(err))
+		c.UI.Error(err.Error())
 		return ExitCodeFailed
 	}
 
@@ -232,6 +221,9 @@ func parse(r io.Reader) (*Info, error) {
 	i.No, _ = content.Attr("data-problem-id")
 	i.Name = content.Find("h3").Text()
 	i.Level = p.First().Find("i.fa-star").Size()
+	if strings.Contains(content.Text(), "スペシャル") {
+		i.Judge = Special
+	}
 	infoData := p.First().Text()
 
 	reg, _ := regexp.Compile(`[\d]+`)
@@ -282,6 +274,14 @@ func reactive(i *Info, cookie string) ([]byte, error) {
 		i.Reactive = true
 		return false
 	})
+
+	if i.Reactive {
+		if i.Judge != Special {
+			i.Judge = Reactive
+		}
+	} else {
+		i.Judge = Normal
+	}
 
 	buf := bytes.NewBuffer(make([]byte, 0, 1000000))
 	if _, err := buf.WriteString(doc.Find("textarea").Text()); err != nil {
