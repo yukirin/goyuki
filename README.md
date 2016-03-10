@@ -28,7 +28,7 @@ $ goyuki run problem_no source_file
 -verbose, -vb		コンパイル時、実行時の標準出力、標準エラー出力を表示する
 -place=n, -p          小数点以下n桁に数値を丸める (float validater時のみ) (0<=n<=15)
 ```
-##### 例(pypy2でコンパイル、実行し、float validaterで出力を小数点以下4桁に丸める場合)
+##### 例(pypy2でコンパイル、実行し、出力を小数点以下4桁に丸め、float validaterで比較する場合)
 ```bash
 $ goyuki run -l pypy2 -V float -p 4 314 sample.py
 ```
