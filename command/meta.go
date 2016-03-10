@@ -3,7 +3,12 @@ package command
 import (
 	"bufio"
 	"flag"
+	"fmt"
 	"io"
+	"os"
+	"path/filepath"
+	"regexp"
+	"strings"
 
 	"github.com/mgutz/ansi"
 	"github.com/mitchellh/cli"
@@ -119,4 +124,36 @@ func Ext(lang string) string {
 		return "." + k
 	}
 	return ""
+}
+
+func classFile(dir, source, langFlag string) (string, error) {
+	class := ""
+	suffix := strings.Split(source, ".")[0] + ".class"
+	if langFlag == "scala" {
+		suffix = "$.class"
+	}
+
+	err := filepath.Walk(dir, func(p string, info os.FileInfo, err error) error {
+		class = strings.TrimSuffix(p, suffix)
+		if len(p) != len(class) {
+			if langFlag == "java" {
+				class += strings.Split(source, ".")[0]
+			}
+
+			class = strings.Replace(class, dir+"/", "", -1)
+			class = strings.Replace(class, "/", ".", -1)
+			return fmt.Errorf("found class")
+		}
+		return err
+	})
+
+	if err.Error() != "found class" {
+		return "", fmt.Errorf("missing .class file")
+	}
+	return class, nil
+}
+
+func className(buf []byte) string {
+	r := regexp.MustCompile(`class ([^ ]+)`)
+	return string(r.Find(buf)[6:])
 }

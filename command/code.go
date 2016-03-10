@@ -4,8 +4,10 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"os"
 	"os/exec"
+	"path"
 	"strings"
 	"text/template"
 	"time"
@@ -139,4 +141,110 @@ func (c *Code) reactiveJudge(cmd, rCmd *exec.Cmd) string {
 	case <-time.After(time.Duration(c.Info.Time) * time.Second):
 		return TLE
 	}
+}
+
+// GetCode to get the compiled code
+func GetCode(f string, lang []string, i *Info, w, e io.Writer) (*Code, *Result, func(), error) {
+	dir, err := ioutil.TempDir("", "goyuki")
+	if err != nil {
+		return nil, nil, nil, fmt.Errorf("can't create directory: %v", err)
+	}
+	clearFunc := func() {
+		os.RemoveAll(dir)
+	}
+
+	ext := Ext(lang[2])
+	_, source := path.Split(f)
+	lCmd := LangCmd{
+		File: source,
+		Exec: strings.Split(source, ".")[0],
+	}
+
+	b, err := ioutil.ReadFile(f)
+	if err != nil {
+		return nil, nil, nil, fmt.Errorf("failed to read source file: %v", err)
+	}
+
+	if err := ioutil.WriteFile(dir+"/"+source, b, FPerm); err != nil {
+		return nil, nil, nil, err
+	}
+
+	ret := &Result{
+		info:       i,
+		date:       time.Now(),
+		lang:       lang[2],
+		codeLength: len(b),
+	}
+
+	code := &Code{
+		LangCmd: &lCmd,
+		Lang:    lang,
+		Info:    i,
+		Dir:     dir,
+	}
+
+	sTime := time.Now()
+	err = code.Compile(os.Stdin, w, e)
+	ret.compileTime = time.Now().Sub(sTime)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+
+	if ext[1:] == "java" || ext[1:] == "scala" {
+		lCmd.Class, err = classFile(dir, source, ext[1:])
+		if err != nil {
+			return nil, nil, nil, err
+		}
+	}
+	return code, ret, clearFunc, nil
+}
+
+// GetReactiveCode to get the compiled reactive code
+func GetReactiveCode(info *Info, no string, w, e io.Writer) (*Code, func(), error) {
+	dir, err := ioutil.TempDir("", "goyuki")
+	if err != nil {
+		return nil, nil, fmt.Errorf("can't create directory: %v", err)
+	}
+	clearFunc := func() {
+		os.RemoveAll(dir)
+	}
+
+	ext := Ext(info.RLang)
+	lang, source := Lang[ext[1:]], ReactiveCode+ext
+	lCmd := LangCmd{
+		File: source,
+		Exec: strings.Split(source, ".")[0],
+	}
+
+	b, err := ioutil.ReadFile(no + "/" + source)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to read reactive file: %v", err)
+	}
+
+	if ext[1:] == "java" {
+		source = className(b) + ext
+		lCmd.File = source
+	}
+
+	if err := ioutil.WriteFile(dir+"/"+source, b, FPerm); err != nil {
+		return nil, nil, err
+	}
+
+	code := &Code{
+		LangCmd: &lCmd,
+		Lang:    lang,
+		Info:    info,
+		Dir:     dir,
+	}
+
+	if err := code.Compile(os.Stdin, w, e); err != nil {
+		return nil, nil, err
+	}
+	if ext[1:] == "java" || ext[1:] == "scala" {
+		lCmd.Class, err = classFile(dir, source, ext[1:])
+		if err != nil {
+			return nil, nil, err
+		}
+	}
+	return code, clearFunc, nil
 }

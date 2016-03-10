@@ -4,12 +4,10 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"os"
 	"path"
 	"path/filepath"
-	"regexp"
 	"strings"
 	"time"
 )
@@ -82,15 +80,6 @@ func (c *RunCommand) Run(args []string) int {
 		return ExitCodeFailed
 	}
 
-	tmpDir, err := ioutil.TempDir("", "goyuki")
-	if err != nil {
-		c.UI.Error(fmt.Sprintf("can't create directory: %v", err))
-		return ExitCodeFailed
-	}
-	defer os.RemoveAll(tmpDir)
-
-	_, source := path.Split(args[1])
-
 	if langFlag == "" {
 		langFlag = strings.Replace(path.Ext(args[1]), ".", "", -1)
 	}
@@ -111,23 +100,6 @@ func (c *RunCommand) Run(args []string) int {
 		return ExitCodeFailed
 	}
 
-	lCmd := LangCmd{
-		File: source,
-		Exec: strings.Split(source, ".")[0],
-	}
-
-	b, err := ioutil.ReadFile(args[1])
-	if err != nil {
-		msg := fmt.Sprintf("failed to read source file: %v", err)
-		c.UI.Error(msg)
-		return ExitCodeFailed
-	}
-
-	if err := ioutil.WriteFile(tmpDir+"/"+source, b, FPerm); err != nil {
-		c.UI.Error(err.Error())
-		return ExitCodeFailed
-	}
-
 	infoBuf, err := ioutil.ReadFile(args[0] + "/" + "info.json")
 	if err != nil {
 		c.UI.Error(fmt.Sprintf("failed to read info file: %v", err))
@@ -140,53 +112,27 @@ func (c *RunCommand) Run(args []string) int {
 		return ExitCodeFailed
 	}
 
-	stdout, stderr := ioutil.Discard, ioutil.Discard
+	w, e := ioutil.Discard, ioutil.Discard
 	if verboseFlag {
-		stdout, stderr = os.Stdout, os.Stderr
+		w, e = os.Stdout, os.Stderr
 	}
 
+	code, result, clearFunc, err := GetCode(args[1], lang, &info, w, e)
+	if err != nil {
+		c.UI.Output(err.Error())
+		return ExitCodeFailed
+	}
+	c.UI.Output(result.String())
+	defer clearFunc()
+
 	var rCode *Code
-	var clearFunc func()
 	if info.JudgeType > 0 {
-		rCode, clearFunc, err = reactiveCode(&info, args[0], stdout, stderr)
+		rCode, clearFunc, err = GetReactiveCode(&info, args[0], w, e)
 		if err != nil {
 			c.UI.Error(err.Error())
 			return ExitCodeFailed
 		}
 		defer clearFunc()
-	}
-
-	result := Result{
-		info:       &info,
-		date:       time.Now(),
-		lang:       lang[2],
-		codeLength: len(b),
-	}
-
-	code := Code{
-		LangCmd: &lCmd,
-		Lang:    lang,
-		Info:    &info,
-		Dir:     tmpDir,
-	}
-
-	sTime := time.Now()
-	err = code.Compile(os.Stdin, stdout, stderr)
-	result.compileTime = time.Now().Sub(sTime)
-	c.UI.Output(result.String())
-	if err != nil {
-		c.UI.Output(err.Error())
-		return ExitCodeFailed
-	}
-
-	if langFlag == "java" || langFlag == "scala" {
-		class, err := classFile(tmpDir, source, langFlag)
-		lCmd.Class = class
-
-		if err != nil {
-			c.UI.Error(err.Error())
-			return ExitCodeFailed
-		}
 	}
 
 	inputFiles, err := filepath.Glob(strings.Join([]string{args[0], "test_in", "*"}, "/"))
@@ -207,28 +153,23 @@ func (c *RunCommand) Run(args []string) int {
 		err := func() error {
 			input, err := os.Open(inputFiles[i])
 			if err != nil {
-				msg := fmt.Sprintf("input test file error: %v", err)
-				c.UI.Error(msg)
-				return err
+				return fmt.Errorf("input test file error: %v", err)
 			}
 			defer input.Close()
 
 			output, err := ioutil.ReadFile(outputFiles[i])
 			if err != nil {
-				msg := fmt.Sprintf("output test file error: %v", err)
-				c.UI.Error(msg)
-				return err
+				return fmt.Errorf("output test file error: %v", err)
 			}
 
 			var result string
 			if info.JudgeType > 0 {
-				result, err = rCode.Reactive(&code, inputFiles[i], outputFiles[i], input, stdout, stderr)
+				result, err = rCode.Reactive(code, inputFiles[i], outputFiles[i], input, w, e)
 			} else {
 				var buf bytes.Buffer
-				result, err = code.Run(v, output, input, &buf, stderr)
+				result, err = code.Run(v, output, input, &buf, e)
 			}
 			if err != nil {
-				c.UI.Error(err.Error())
 				return err
 			}
 
@@ -237,6 +178,7 @@ func (c *RunCommand) Run(args []string) int {
 			return nil
 		}()
 		if err != nil {
+			c.UI.Error(err.Error())
 			return ExitCodeFailed
 		}
 	}
@@ -264,85 +206,4 @@ Options:
 
 `
 	return strings.TrimSpace(helpText)
-}
-
-func reactiveCode(info *Info, no string, w, e io.Writer) (*Code, func(), error) {
-	rTmpDir, err := ioutil.TempDir("", "goyuki")
-	if err != nil {
-		return nil, nil, fmt.Errorf("can't create directory: %v", err)
-	}
-	clearFunc := func() {
-		os.RemoveAll(rTmpDir)
-	}
-
-	ext := Ext(info.RLang)
-	lang, source := Lang[ext[1:]], ReactiveCode+ext
-	lCmd := LangCmd{
-		File: source,
-		Exec: strings.Split(source, ".")[0],
-	}
-
-	b, err := ioutil.ReadFile(no + "/" + source)
-	if err != nil {
-		return nil, nil, fmt.Errorf("failed to read reactive file: %v", err)
-	}
-
-	if ext[1:] == "java" {
-		source = renameJava(b) + ext
-		lCmd.File = source
-	}
-	if err := ioutil.WriteFile(rTmpDir+"/"+source, b, FPerm); err != nil {
-		return nil, nil, err
-	}
-
-	rCode := &Code{
-		LangCmd: &lCmd,
-		Lang:    lang,
-		Info:    info,
-		Dir:     rTmpDir,
-	}
-
-	if err := rCode.Compile(os.Stdin, w, e); err != nil {
-		return nil, nil, fmt.Errorf("reactive code compile error")
-	}
-	if ext[1:] == "java" || ext[1:] == "scala" {
-		lCmd.Class, err = classFile(rTmpDir, source, ext[1:])
-		if err != nil {
-			return nil, nil, err
-		}
-	}
-	return rCode, clearFunc, nil
-}
-
-func classFile(dir, source, langFlag string) (string, error) {
-	class := ""
-
-	suffix := strings.Split(source, ".")[0] + ".class"
-	if langFlag == "scala" {
-		suffix = "$.class"
-	}
-
-	err := filepath.Walk(dir, func(p string, info os.FileInfo, err error) error {
-		class = strings.TrimSuffix(p, suffix)
-		if len(p) != len(class) {
-			if langFlag == "java" {
-				class += strings.Split(source, ".")[0]
-			}
-
-			class = strings.Replace(class, dir+"/", "", -1)
-			class = strings.Replace(class, "/", ".", -1)
-			return fmt.Errorf("found class")
-		}
-		return err
-	})
-
-	if err.Error() != "found class" {
-		return "", fmt.Errorf("missing .class file")
-	}
-	return class, nil
-}
-
-func renameJava(buf []byte) string {
-	r := regexp.MustCompile(`class ([^ ]+)`)
-	return string(r.Find(buf)[6:])
 }
