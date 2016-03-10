@@ -74,13 +74,13 @@ func (c *GetCommand) Run(args []string) int {
 		return ExitCodeFailed
 	}
 
-	rBuf, err := reactive(i, cookie)
+	rb, err := downloadReactive(i, cookie)
 	if err != nil {
 		c.UI.Error(err.Error())
 		return ExitCodeFailed
 	}
 
-	if err := save(b, rBuf, i, num); err != nil {
+	if err := save(b, rb, i, num); err != nil {
 		c.UI.Error(err.Error())
 		return ExitCodeFailed
 	}
@@ -232,9 +232,11 @@ func parse(r io.Reader) (*Info, error) {
 	i.No, _ = content.Attr("data-problem-id")
 	i.Name = content.Find("h3").Text()
 	i.Level = p.First().Find("i.fa-star").Size()
+
 	if strings.Contains(content.Text(), "スペシャル") {
 		i.JudgeType = Special
 	}
+
 	infoData := p.First().Text()
 
 	reg, _ := regexp.Compile(`[\d]+`)
@@ -253,7 +255,7 @@ func parse(r io.Reader) (*Info, error) {
 	return i, nil
 }
 
-func reactive(i *Info, cookie string) ([]byte, error) {
+func downloadReactive(i *Info, cookie string) ([]byte, error) {
 	uri := strings.Join([]string{BaseURL, i.No, "code"}, "/")
 	session := &http.Cookie{
 		Name:     "REVEL_SESSION",
@@ -271,7 +273,15 @@ func reactive(i *Info, cookie string) ([]byte, error) {
 	}
 	defer res.Body.Close()
 
-	doc, err := goquery.NewDocumentFromReader(res.Body)
+	buf, err := parseReactive(res.Body, i)
+	if err != nil {
+		return nil, fmt.Errorf("reactive code parse error: %v", err)
+	}
+	return buf, nil
+}
+
+func parseReactive(r io.Reader, i *Info) ([]byte, error) {
+	doc, err := goquery.NewDocumentFromReader(r)
 	if err != nil {
 		return nil, fmt.Errorf("judge code parse error: %v", err)
 	}
@@ -281,9 +291,9 @@ func reactive(i *Info, cookie string) ([]byte, error) {
 		if _, ok := e.Attr("selected"); !ok {
 			return true
 		}
+
 		lang := e.Text()
-		i.RLang = lang[:strings.Index(lang, " ")]
-		isReactive = true
+		i.RLang, isReactive = lang[:strings.Index(lang, " ")], true
 		return false
 	})
 
