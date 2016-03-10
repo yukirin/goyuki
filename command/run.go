@@ -19,6 +19,35 @@ type RunCommand struct {
 	Meta
 }
 
+// Result is test result
+type Result struct {
+	info        *Info
+	date        time.Time
+	compileTime time.Duration
+	lang        string
+	codeLength  int
+}
+
+func (r *Result) String() string {
+	s := ""
+	switch r.info.JudgeType {
+	case Normal:
+		s = "Normal"
+	case Special:
+		s = "Special"
+	case Reactive:
+		s = "Reactive"
+	}
+	strs := make([]string, 6)
+	strs[0] = fmt.Sprintf("\n問題:\t\t%s", r.info.Name)
+	strs[1] = fmt.Sprintf("テスト日時:\t%s", r.date.Format(time.RFC1123))
+	strs[2] = fmt.Sprintf("言語:\t\t%s", r.lang)
+	strs[3] = fmt.Sprintf("コンパイル時間:\t%d ms", r.compileTime.Nanoseconds()/1000000)
+	strs[4] = fmt.Sprintf("コード長:\t%d byte", r.codeLength)
+	strs[5] = fmt.Sprintf("ジャッジタイプ:\t%s\n", s)
+	return strings.Join(strs, "\n")
+}
+
 // Run run the test
 func (c *RunCommand) Run(args []string) int {
 	var (

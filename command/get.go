@@ -23,6 +23,17 @@ type GetCommand struct {
 	Meta
 }
 
+// Info is problem info
+type Info struct {
+	No        string
+	Name      string
+	Level     int
+	Time      int
+	Mem       int
+	RLang     string
+	JudgeType int
+}
+
 // Run get test case
 func (c *GetCommand) Run(args []string) int {
 	flags := c.Meta.NewFlagSet("get", c.Help())
