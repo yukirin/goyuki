@@ -21,6 +21,8 @@ func TestRunCommandFlag(t *testing.T) {
 		{args: []string{}, code: ExitCodeFailed, result: "Invalid arguments"},
 		{args: []string{"-l", "lang", "testdata/337", "foo.go"}, code: ExitCodeFailed, result: "Invalid language"},
 		{args: []string{"-V", "hoge", "testdata/337", "foo.go"}, code: ExitCodeFailed, result: "Invalid validater"},
+		{args: []string{"-V", "float", "-p", "16", "testdata/337", "foo.go"}, code: ExitCodeFailed, result: "Invalid round"},
+		{args: []string{"-V", "float", "-p", "-1", "testdata/337", "foo.go"}, code: ExitCodeFailed, result: "Invalid round"},
 	}
 
 	for _, testCase := range testCases {
