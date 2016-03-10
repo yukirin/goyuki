@@ -26,11 +26,11 @@ $ goyuki run problem_no source_file
 -language=lang, -l       実行する言語を指定します (デフォルト 拡張子から判別)
 -validater=validater, -V       テストの一致方法を指定します (デフォルト diff validator)
 -verbose, -vb		コンパイル時、実行時の標準出力、標準エラー出力を表示する
--place, -p          小数点以下p桁に数値を丸める (float validater時のみ) (0<=p<=15)
+-place=n, -p          小数点以下n桁に数値を丸める (float validater時のみ) (0<=n<=15)
 ```
-##### 例(pypy2でコンパイル、実行し、diff validaterを使用する場合)
+##### 例(pypy2でコンパイル、実行し、float validaterで出力を小数点以下4桁に丸める場合)
 ```bash
-$ goyuki run -l pypy2 -V diff 314 sample.py
+$ goyuki run -l pypy2 -V float -p 4 314 sample.py
 ```
 
 #### Validater(-validater オプション名)
