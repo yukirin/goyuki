@@ -52,6 +52,7 @@ func (c *RunCommand) Run(args []string) int {
 		langFlag      string
 		validaterFlag string
 		verboseFlag   bool
+		roundFlag     int
 	)
 
 	flags := c.Meta.NewFlagSet("run", c.Help())
@@ -61,6 +62,8 @@ func (c *RunCommand) Run(args []string) int {
 	flags.StringVar(&validaterFlag, "validater", "", "Specify Validater")
 	flags.BoolVar(&verboseFlag, "vb", false, "increase amount of output")
 	flags.BoolVar(&verboseFlag, "verbose", false, "increase amount of output")
+	flags.IntVar(&roundFlag, "p", 0, "Rounded to the decimal point p digits")
+	flags.IntVar(&roundFlag, "place", 0, "Rounded to the decimal point place digits")
 
 	if err := flags.Parse(args); err != nil {
 		msg := fmt.Sprintf("Invalid option: %s", strings.Join(args, " "))
@@ -98,6 +101,16 @@ func (c *RunCommand) Run(args []string) int {
 		msg := fmt.Sprintf("Invalid validater: %s", validaterFlag)
 		c.UI.Error(msg)
 		return ExitCodeFailed
+	}
+
+	if roundFlag < 0 || roundFlag > 15 {
+		msg := fmt.Sprintf("Invalid round: %d", roundFlag)
+		c.UI.Error(msg)
+		return ExitCodeFailed
+	}
+
+	if validaterFlag == "float" {
+		Validaters["float"] = &FloatValidater{Place: roundFlag}
 	}
 
 	infoBuf, err := ioutil.ReadFile(args[0] + "/" + "info.json")
@@ -202,6 +215,7 @@ Options:
 	-language=lang, -l		実行する言語を指定します (デフォルト 拡張子から判別)
 	-validater=validater, -V      テストの一致方法を指定します (デフォルト diff validater)
 	-verbose, -vb		コンパイル時、実行時の標準出力、標準エラー出力を表示する
+	-place, -p			小数点以下p桁に数値を丸める (float validater時のみ) (0<=p<=15)
 
 
 `

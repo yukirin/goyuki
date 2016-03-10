@@ -3,6 +3,7 @@ package command
 import (
 	"bufio"
 	"bytes"
+	"math"
 	"strconv"
 )
 
@@ -35,6 +36,7 @@ func (d *DiffValidater) Validate(actual, expected []byte) bool {
 
 // FloatValidater compares converted to float
 type FloatValidater struct {
+	Place int
 }
 
 // Validate compares converted to float
@@ -56,7 +58,7 @@ func (f *FloatValidater) Validate(actual, expected []byte) bool {
 			return false
 		}
 
-		if f1 != f2 {
+		if f.Round(f1) != f.Round(f2) {
 			return false
 		}
 	}
@@ -65,6 +67,15 @@ func (f *FloatValidater) Validate(actual, expected []byte) bool {
 		return true
 	}
 	return false
+}
+
+// Round is rounding
+func (f *FloatValidater) Round(n float64) float64 {
+	if f.Place == 0 {
+		return n
+	}
+	shift := math.Pow10(f.Place)
+	return math.Floor(n*shift+.5) / shift
 }
 
 // Validaters is map of available validater
