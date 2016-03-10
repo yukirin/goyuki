@@ -130,7 +130,7 @@ func (c *RunCommand) Run(args []string) int {
 		w, e = os.Stdout, os.Stderr
 	}
 
-	code, result, clearFunc, err := GetCode(args[1], lang, &info, w, e)
+	code, result, clearFunc, err := NewCode(args[1], lang, &info, w, e)
 	if err != nil {
 		c.UI.Output(err.Error())
 		return ExitCodeFailed
@@ -140,7 +140,7 @@ func (c *RunCommand) Run(args []string) int {
 
 	var rCode *Code
 	if info.JudgeType > 0 {
-		rCode, clearFunc, err = GetReactiveCode(&info, args[0], w, e)
+		rCode, clearFunc, err = NewReactiveCode(&info, args[0], w, e)
 		if err != nil {
 			c.UI.Error(err.Error())
 			return ExitCodeFailed

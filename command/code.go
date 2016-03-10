@@ -143,8 +143,8 @@ func (c *Code) reactiveJudge(cmd, rCmd *exec.Cmd) string {
 	}
 }
 
-// GetCode to get the compiled code
-func GetCode(f string, lang []string, i *Info, w, e io.Writer) (*Code, *Result, func(), error) {
+// NewCode to get the compiled code
+func NewCode(f string, lang []string, i *Info, w, e io.Writer) (*Code, *Result, func(), error) {
 	dir, err := ioutil.TempDir("", "goyuki")
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf("can't create directory: %v", err)
@@ -199,8 +199,8 @@ func GetCode(f string, lang []string, i *Info, w, e io.Writer) (*Code, *Result, 
 	return code, ret, clearFunc, nil
 }
 
-// GetReactiveCode to get the compiled reactive code
-func GetReactiveCode(info *Info, no string, w, e io.Writer) (*Code, func(), error) {
+// NewReactiveCode to get the compiled reactive code
+func NewReactiveCode(info *Info, no string, w, e io.Writer) (*Code, func(), error) {
 	dir, err := ioutil.TempDir("", "goyuki")
 	if err != nil {
 		return nil, nil, fmt.Errorf("can't create directory: %v", err)
