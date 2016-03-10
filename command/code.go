@@ -48,7 +48,7 @@ func (c *Code) buildCmd(i int, args ...string) (*exec.Cmd, error) {
 	return cmd, nil
 }
 
-// Run performs the usual format of the Judge
+// Run to run the normal format of Judge
 func (c *Code) Run(v Validater, expected []byte, r io.Reader, w, e io.Writer) (string, error) {
 	cmd, err := c.buildCmd(1)
 	if err != nil {
@@ -56,6 +56,10 @@ func (c *Code) Run(v Validater, expected []byte, r io.Reader, w, e io.Writer) (s
 	}
 
 	cmd.Stdin, cmd.Stdout, cmd.Stderr = r, w, e
+	return c.judge(cmd, v, expected), nil
+}
+
+func (c *Code) judge(cmd *exec.Cmd, v Validater, expected []byte) string {
 	ch := make(chan error)
 	sTime := time.Now()
 	go func() {
@@ -66,20 +70,18 @@ func (c *Code) Run(v Validater, expected []byte, r io.Reader, w, e io.Writer) (s
 	case err := <-ch:
 		t := time.Now().Sub(sTime).Nanoseconds() / 1000000
 		if err != nil {
-			return RE, nil
+			return RE
 		}
-
 		if !v.Validate(cmd.Stdout.(*bytes.Buffer).Bytes(), expected) {
-			return fmt.Sprintf("%s: %d ms", WA, t), nil
+			return fmt.Sprintf("%s: %d ms", WA, t)
 		}
-
-		return fmt.Sprintf("%s: %d ms", AC, t), nil
+		return fmt.Sprintf("%s: %d ms", AC, t)
 	case <-time.After(time.Duration(c.Info.Time) * time.Second):
-		return TLE, nil
+		return TLE
 	}
 }
 
-// Reactive performs a judge of the reactive form
+// Reactive to run the reactive format of Judge
 func (c *Code) Reactive(code *Code, inFile, outFile string, r io.Reader, w, e io.Writer) (string, error) {
 	cur, err := os.Getwd()
 	if err != nil {
@@ -110,7 +112,10 @@ func (c *Code) Reactive(code *Code, inFile, outFile string, r io.Reader, w, e io
 		cmd.Stdin, rCmd.Stdout = r, w
 	}
 	cmd.Stderr, rCmd.Stderr = e, e
+	return c.reactiveJudge(cmd, rCmd), nil
+}
 
+func (c *Code) reactiveJudge(cmd, rCmd *exec.Cmd) string {
 	ch1, ch2 := make(chan error), make(chan []error)
 	sTime := time.Now()
 	go func() {
@@ -125,13 +130,13 @@ func (c *Code) Reactive(code *Code, inFile, outFile string, r io.Reader, w, e io
 	case errs := <-ch2:
 		t := time.Now().Sub(sTime).Nanoseconds() / 1000000
 		if errs[0] != nil {
-			return RE, nil
+			return RE
 		}
 		if errs[1] != nil {
-			return fmt.Sprintf("%s: %d ms", WA, t), nil
+			return fmt.Sprintf("%s: %d ms", WA, t)
 		}
-		return fmt.Sprintf("%s: %d ms", AC, t), nil
+		return fmt.Sprintf("%s: %d ms", AC, t)
 	case <-time.After(time.Duration(c.Info.Time) * time.Second):
-		return TLE, nil
+		return TLE
 	}
 }
