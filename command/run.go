@@ -93,16 +93,6 @@ func (c *RunCommand) Run(args []string) int {
 		return ExitCodeFailed
 	}
 
-	if validaterFlag == "" {
-		validaterFlag = "diff"
-	}
-	v, ok := Validaters[validaterFlag]
-	if !ok {
-		msg := fmt.Sprintf("Invalid validater: %s", validaterFlag)
-		c.UI.Error(msg)
-		return ExitCodeFailed
-	}
-
 	if roundFlag < 0 || roundFlag > 15 {
 		msg := fmt.Sprintf("Invalid round: %d", roundFlag)
 		c.UI.Error(msg)
@@ -111,6 +101,16 @@ func (c *RunCommand) Run(args []string) int {
 
 	if validaterFlag == "float" {
 		Validaters["float"] = &FloatValidater{Place: roundFlag}
+	}
+
+	if validaterFlag == "" {
+		validaterFlag = "diff"
+	}
+	v, ok := Validaters[validaterFlag]
+	if !ok {
+		msg := fmt.Sprintf("Invalid validater: %s", validaterFlag)
+		c.UI.Error(msg)
+		return ExitCodeFailed
 	}
 
 	infoBuf, err := ioutil.ReadFile(args[0] + "/" + "info.json")
