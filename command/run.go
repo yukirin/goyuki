@@ -215,7 +215,7 @@ Options:
 	-language=lang, -l		実行する言語を指定します (デフォルト 拡張子から判別)
 	-validater=validater, -V      テストの一致方法を指定します (デフォルト diff validater)
 	-verbose, -vb		コンパイル時、実行時の標準出力、標準エラー出力を表示する
-	-place=n, -p			小数点以下n桁に数値を丸める (float validater時のみ) (0<=n<=15)
+	-place=n, -p			小数点以下n桁に出力された数値を丸める (float validater時のみ) (0<=n<=15)
 
 
 `
