@@ -113,7 +113,7 @@ func (c *Code) Reactive(code *Code, inFile, outFile string, r io.Reader, w, e io
 	} else {
 		cmd.Stdin, rCmd.Stdout = r, w
 	}
-	cmd.Stderr, rCmd.Stderr = e, e
+	cmd.Stderr = e
 	return c.reactiveJudge(cmd, rCmd), nil
 }
 
