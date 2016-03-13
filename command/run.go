@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"os"
 	"path"
@@ -125,7 +126,7 @@ func (c *RunCommand) Run(args []string) int {
 		return ExitCodeFailed
 	}
 
-	w, e := ioutil.Discard, ioutil.Discard
+	var w, e io.Writer
 	if verboseFlag {
 		w, e = os.Stdout, os.Stderr
 	}
