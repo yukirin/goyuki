@@ -14,7 +14,6 @@ $ export GOYUKI=12345hogehoge # zshの場合
 $ goyuki get problem_no
 ```
 
-<br />
 ### `run` コマンド
 #### テストを実行する
 コンパイル後、テストを実行する
