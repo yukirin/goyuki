@@ -40,7 +40,6 @@ $ goyuki run -l pypy2 -V float -p 4 314 sample.py
 テストファイルと実行ファイルの出力をFloat64型の数値へ変換し比較する
 
 
-<br />
 ### 問題No.
 [No.1 道のショートカット](http://yukicoder.me/problems/17)のテストを実行したい場合(ソースファイルをmain.goとした場合)
 ```bash
@@ -52,7 +51,6 @@ $ goyuki run 1 main.go
 $ goyuki get 1
 ```
 
-<br />
 ### 対応言語(-language オプション名)
 * C++11 (cpp)
 * C (c)
